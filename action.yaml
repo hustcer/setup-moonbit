@@ -31,6 +31,5 @@ runs:
     - name: Setup MoonBit
       shell: nu {0}
       run: |
-        use ${{ github.workspace }}/nu/moonbit.nu *
-        setup moonbit
+        nu -c "use nu/moonbit.nu *; setup moonbit"
 

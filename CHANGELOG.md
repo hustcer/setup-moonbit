@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.1] - 2023-11-02
+
+### Bug Fixes
+
+- Fix nu module loading, use relative path instead of absolute path
+- Embed scripts into action.yml
+
 ## [1.0] - 2023-11-02
 
 ### Documentation

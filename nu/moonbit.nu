@@ -6,7 +6,7 @@
 #   [x] Support Windows, macOS, Linux
 # Description: Scripts for setting up MoonBit environment
 
-use common.nu [hr-line log windows?]
+use common.nu [hr-line windows?]
 
 const CLI_HOST = 'https://cli.moonbitlang.com'
 

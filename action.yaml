@@ -1,0 +1,36 @@
+# Setup MoonBit Action
+#   @author: hustcer
+#   @created: 2023/11/02 20:50:20
+# REF:
+#   - https://docs.github.com/cn/actions/creating-actions/about-custom-actions
+#   - https://docs.github.com/cn/actions/creating-actions/metadata-syntax-for-github-actions
+#   - https://docs.github.com/en/actions/creating-actions/creating-a-composite-action
+
+name: 'Setup MoonBit'
+author: 'hustcer'
+description: 'A github action to setup MoonBit environment'
+
+branding:
+  icon: 'code'
+  color: 'purple'
+
+inputs:
+  action:
+    required: false
+    default: 'nothing'
+    description: 'Just a Test input, no input required currently.'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Nu
+      uses: hustcer/setup-nu@v3.7
+      with:
+        version: '0.86.0'
+
+    - name: Setup MoonBit
+      shell: nu {0}
+      run: |
+        use ${{ github.workspace }}/nu/moonbit.nu *
+        setup moonbit
+

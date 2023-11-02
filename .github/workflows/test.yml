@@ -7,12 +7,15 @@ name: Setup-Moonbit@Release
 on:
   push:
     branches:
-      - develop0
+      - develop
 
 jobs:
   setup-moonbit:
-    runs-on: ubuntu-latest
-    name: Setup MoonBit
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-22.04, macos-latest]
+    runs-on: ${{ matrix.os }}
+    name: Setup MoonBit@${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4.1.0
@@ -21,3 +24,11 @@ jobs:
         uses: hustcer/setup-moonbit@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Moonbit Version
+        run: |
+          moon version
+          moonc -v
+          moonrun --version
+          moon new hello && cd hello
+          moon run main

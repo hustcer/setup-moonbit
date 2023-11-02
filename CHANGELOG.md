@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.2] - 2023-11-02
+
+### Refactor
+
+- Use modules instead of embeded scripts
+
+# Changelog
+All notable changes to this project will be documented in this file.
+
 ## [1.1] - 2023-11-02
 
 ### Bug Fixes

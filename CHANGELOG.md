@@ -5,10 +5,7 @@ All notable changes to this project will be documented in this file.
 
 ### Refactor
 
-- Use modules instead of embeded scripts
-
-# Changelog
-All notable changes to this project will be documented in this file.
+- Use modules instead of embedded scripts
 
 ## [1.1] - 2023-11-02
 

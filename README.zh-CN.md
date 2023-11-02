@@ -16,7 +16,7 @@ steps:
     uses: actions/checkout@v4.1.0
 
   - name: Setup Moonbit
-    uses: hustcer/setup-moonbit@v1
+    uses: hustcer/setup-moonbit@v1.0
 
   - name: Check Moonbit Version
     run: |
@@ -32,7 +32,7 @@ steps:
 在极少数情况下，你可能会看到速率限制之类的错误。如果发生这种情况，你可以通过设置 `GITHUB_TOKEN` 环境变量来避免该问题：
 
 ```yaml
-- uses: hustcer/setup-moonbit@v1
+- uses: hustcer/setup-moonbit@v1.0
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```

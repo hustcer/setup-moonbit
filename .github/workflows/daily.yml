@@ -1,0 +1,45 @@
+# Description:
+#   - Setup Moonbit with GitHub Actions
+# REF:
+#   - https://github.com/marketplace/actions/checkout
+
+name: Setup-Moonbit@Daily Checking
+on:
+  # This schedule will run only from the default branch
+  schedule:
+    - cron: '15 0 * * *' # run at 00:15 AM UTC
+
+jobs:
+  setup-moonbit:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-22.04, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+    name: Setup MoonBit@${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.0
+
+      - name: Setup Moonbit
+        uses: hustcer/setup-moonbit@v1.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Moonbit Version
+        run: |
+          moon version
+          moonc -v
+          moonrun --version
+          moon new hello && cd hello
+          moon run main
+
+      - name: Create an Issue for Release Failure
+        if: ${{ success() }}
+        uses: JasonEtco/create-an-issue@v2.9.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          update_existing: true
+          search_existing: open
+          filename: .github/AUTO_ISSUE_TEMPLATE/daily-checking-fail.md

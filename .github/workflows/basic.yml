@@ -9,6 +9,9 @@ on:
     branches:
       - develop
 
+    paths-ignore:
+      - '**.md'
+
 jobs:
   setup-moonbit:
     strategy:

@@ -4,7 +4,7 @@
 
 [![Setup-Moonbit@Dev](https://github.com/hustcer/setup-moonbit/actions/workflows/basic.yml/badge.svg)](https://github.com/hustcer/setup-moonbit/actions/workflows/basic.yml)
 
-This GitHub Action will setup a [MoonBit](https://www.moonbitlang.com/) environment for you.
+This GitHub Action will setup a [MoonBit](https://www.moonbitlang.com/) environment for you. It should work on Github `macos`, `ubuntu`, and `Windows` runners.
 
 ## Usage
 

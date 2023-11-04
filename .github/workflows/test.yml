@@ -7,7 +7,10 @@ name: Setup-Moonbit@Release
 on:
   push:
     branches:
-      - develop
+      - main
+
+    paths-ignore:
+      - '**.md'
 
 jobs:
   setup-moonbit:

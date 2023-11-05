@@ -5,6 +5,9 @@
 
 name: Setup-Moonbit@Daily Checking
 on:
+  # push:
+  #   branches:
+  #     - develop
   # This schedule will run only from the default branch
   schedule:
     - cron: '15 0 * * *' # run at 00:15 AM UTC
@@ -35,7 +38,7 @@ jobs:
           moon run main
 
       - name: Create an Issue for Release Failure
-        if: ${{ success() }}
+        if: ${{ failure() }}
         uses: JasonEtco/create-an-issue@v2.9.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

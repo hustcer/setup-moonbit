@@ -33,9 +33,9 @@ export def 'setup moonbit' [] {
   if ($DOWNLOAD_PATH | is-empty) { echo $'Unsupported Platform: ($OS_INFO)'; exit 2 }
 
   if (windows?) {
-    $WINDOWS_BINS | each {|it| aria2c $'($CLI_HOST)/($DOWNLOAD_PATH)/($it)' }
+    $WINDOWS_BINS | each {|it| aria2c --allow-overwrite $'($CLI_HOST)/($DOWNLOAD_PATH)/($it)' }
   } else {
-    $DEFAULT_BINS | each {|it| aria2c $'($CLI_HOST)/($DOWNLOAD_PATH)/($it)'; chmod +x $it }
+    $DEFAULT_BINS | each {|it| aria2c --allow-overwrite $'($CLI_HOST)/($DOWNLOAD_PATH)/($it)'; chmod +x $it }
   }
 
   echo 'OS Info:'; echo $nu.os-info; hr-line

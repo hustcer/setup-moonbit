@@ -4,6 +4,7 @@
 # TODO:
 #   [x] Install all moon* binaries
 #   [x] Support Windows, macOS, Linux
+#   [x] This script should run both in Github Runners and local machines
 # Description: Scripts for setting up MoonBit environment
 
 use common.nu [hr-line windows?]
@@ -11,9 +12,10 @@ use common.nu [hr-line windows?]
 const CLI_HOST = 'https://cli.moonbitlang.com'
 
 const CLI_DOWNLOAD_PATH = {
-  Windows: 'windows',
-  Ubuntu: 'ubuntu_x86',
-  Darwin: 'macos_intel',
+  windows_x86_64: 'windows',
+  linux_x86_64: 'ubuntu_x86',
+  macos_aarch64: 'macos_m1',
+  macos_x86_64: 'macos_intel',
 }
 
 export-env {
@@ -26,7 +28,9 @@ export def 'setup moonbit' [] {
   const DEFAULT_BINS = ['moon', 'moonc', 'moonfmt', 'moonrun', 'mooninfo']
   const WINDOWS_BINS = ['moon.exe', 'moonc.exe', 'moonfmt.exe', 'moonrun.exe']
   mkdir $MOONBIT_BIN_DIR; cd $MOONBIT_BIN_DIR
-  let DOWNLOAD_PATH = $CLI_DOWNLOAD_PATH | get -i (sys).host.name
+  let OS_INFO = $'($nu.os-info.name)_($nu.os-info.arch)'
+  let DOWNLOAD_PATH = $CLI_DOWNLOAD_PATH | get -i $OS_INFO
+  if ($DOWNLOAD_PATH | is-empty) { echo $'Unsupported Platform: ($OS_INFO)'; exit 2 }
 
   if (windows?) {
     $WINDOWS_BINS | each {|it| aria2c $'($CLI_HOST)/($DOWNLOAD_PATH)/($it)' }
@@ -34,10 +38,12 @@ export def 'setup moonbit' [] {
     $DEFAULT_BINS | each {|it| aria2c $'($CLI_HOST)/($DOWNLOAD_PATH)/($it)'; chmod +x $it }
   }
 
-  echo (char nl)
+  echo 'OS Info:'; echo $nu.os-info; hr-line
   echo $'Contents of ($MOONBIT_BIN_DIR):'; hr-line -b
   echo (ls -l $MOONBIT_BIN_DIR)
-  echo $MOONBIT_BIN_DIR  | save -a $env.GITHUB_PATH
+  if ('GITHUB_PATH' in $env) {
+    echo $MOONBIT_BIN_DIR  | save -a $env.GITHUB_PATH
+  }
 }
 
 alias main = setup moonbit

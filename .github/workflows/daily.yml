@@ -16,7 +16,7 @@ jobs:
   setup-moonbit:
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-22.04, macos-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest]
 
     runs-on: ${{ matrix.os }}
     name: Setup MoonBit@${{ matrix.os }}

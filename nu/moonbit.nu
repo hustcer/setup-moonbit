@@ -7,7 +7,7 @@
 #   [x] This script should run both in Github Runners and local machines
 # Description: Scripts for setting up MoonBit environment
 
-use common.nu [hr-line windows?]
+use common.nu [hr-line windows? is-installed]
 
 const CLI_HOST = 'https://cli.moonbitlang.com'
 
@@ -22,6 +22,15 @@ export-env {
   $env.config.color_config.leading_trailing_space_bg = { attr: n }
 }
 
+# Download binary file from CLI_HOST with aira2c or `http get`
+def fetch-bin [ bin: string, download_path: string ] {
+  if (is-installed aria2c) {
+    aria2c --allow-overwrite $'($CLI_HOST)/($download_path)/($bin)'
+  } else {
+    http get $'($CLI_HOST)/($download_path)/($bin)' | save --progress --force $bin
+  }
+}
+
 # Download moonbit binary files to local
 export def 'setup moonbit' [] {
   let MOONBIT_BIN_DIR = [$nu.home-path '.moon'] | path join
@@ -33,9 +42,9 @@ export def 'setup moonbit' [] {
   if ($DOWNLOAD_PATH | is-empty) { echo $'Unsupported Platform: ($OS_INFO)'; exit 2 }
 
   if (windows?) {
-    $WINDOWS_BINS | each {|it| aria2c --allow-overwrite $'($CLI_HOST)/($DOWNLOAD_PATH)/($it)' }
+    $WINDOWS_BINS | each {|it| fetch-bin $it $DOWNLOAD_PATH }
   } else {
-    $DEFAULT_BINS | each {|it| aria2c --allow-overwrite $'($CLI_HOST)/($DOWNLOAD_PATH)/($it)'; chmod +x $it }
+    $DEFAULT_BINS | each {|it| fetch-bin $it $DOWNLOAD_PATH; chmod +x $it }
   }
 
   echo 'OS Info:'; echo $nu.os-info; hr-line

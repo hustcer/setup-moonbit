@@ -34,7 +34,7 @@ def fetch-bin [ bin: string, download_path: string ] {
 # Download moonbit binary files to local
 export def 'setup moonbit' [] {
   let MOONBIT_BIN_DIR = [$nu.home-path '.moon'] | path join
-  const DEFAULT_BINS = ['moon', 'moonc', 'moonfmt', 'moonrun', 'mooninfo']
+  const DEFAULT_BINS = ['moon', 'moonc', 'moonfmt', 'moonrun', 'mooninfo', 'moondoc']
   const WINDOWS_BINS = ['moon.exe', 'moonc.exe', 'moonfmt.exe', 'moonrun.exe']
   mkdir $MOONBIT_BIN_DIR; cd $MOONBIT_BIN_DIR
   let OS_INFO = $'($nu.os-info.name)_($nu.os-info.arch)'

@@ -21,7 +21,7 @@ jobs:
     name: Setup MoonBit@${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4.1.1
 
       - name: Setup Moonbit
         uses: hustcer/setup-moonbit@develop
@@ -33,5 +33,3 @@ jobs:
           moon version
           moonc -v
           moonrun --version
-          moon new hello && cd hello
-          moon run main

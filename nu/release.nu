@@ -12,7 +12,7 @@
 #   Change `version` in meta.json and then run: `just release` OR `just release true`
 
 export def 'make-release' [
-  --update-log(-u): bool    # Set to `true` do enable updating CHANGELOG.md
+  --update-log(-u)    # Add flag to enable updating CHANGELOG.md
 ] {
 
   cd $env.SETUP_MOONBIT_PATH

@@ -5,9 +5,10 @@
 
 name: Setup-Moonbit@Daily Checking
 on:
-  # push:
-  #   branches:
-  #     - develop
+  push:
+    branches:
+      - main
+      - develop
   # This schedule will run only from the default branch
   schedule:
     - cron: '15 0 * * *' # run at 00:15 AM UTC
@@ -15,6 +16,7 @@ on:
 jobs:
   setup-moonbit:
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
 

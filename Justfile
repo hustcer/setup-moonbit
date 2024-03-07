@@ -39,11 +39,11 @@ default:
   @just --list --list-prefix "··· "
 
 # Release a new version for `setup-moonbit`
-release updateLog=('false'):
+release *OPTIONS:
   @overlay use {{ join(SETUP_MOONBIT_PATH, 'nu', 'common.nu') }}; \
     overlay use {{ join(SETUP_MOONBIT_PATH, 'nu', 'release.nu') }}; \
     git-check --check-repo=1 {{SETUP_MOONBIT_PATH}}; \
-    make-release --update-log {{updateLog}}
+    make-release {{OPTIONS}}
 
 # Fetch official install scripts
 fetch:

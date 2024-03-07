@@ -5,26 +5,23 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
-- Fix aria2c download for local Windows machine
+- Fix `aria2c` download for local Windows machine
 - Fix daily checking workflow, create an issue if it fails
 - Fix all workflows
 - Fix `just release` task
 
 ### Features
 
-- Add daily checking workflow to make sure setup-moonbit works, close #1 (#3)
+- Add daily checking workflow to make sure `setup-moonbit` works, close #1 (#3)
 - Make moonbit.nu works on both Github runners and local machine
-- Use `http get` instead of `aria2c` for binary downloading when aira2c is not installed (#9)
+- Use `http get` instead of `aria2c` for binary downloading when `aira2c` is not installed (#9)
 - Add moondoc command
 
 ### Miscellaneous Tasks
 
 - Use ubuntu-latest instead of ubuntu-22.04 in workflows
-- Upgrade Nu to 0.87.1
+- Upgrade Nu to 0.91.0
 - Turn off fail fast for daily workflow
-
-# Changelog
-All notable changes to this project will be documented in this file.
 
 ## [1.2] - 2023-11-02
 

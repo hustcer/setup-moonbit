@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.5] - 2024-04-27
+
+### Deps
+
+- Upgrade to Nu v0.92.2 for the shell engine
+- Upgrade setup-nu to v3.10 to fix macOS arm64 support
+
+
 ## [1.3] - 2024-03-07
 
 ### Bug Fixes

@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 ## [1.5] - 2024-04-27
 
+### Features
+
+- Add `moon_cove_report` download support for non-Windows OS
+
 ### Deps
 
 - Upgrade to Nu v0.92.2 for the shell engine

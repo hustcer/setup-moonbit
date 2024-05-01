@@ -15,10 +15,10 @@ It's quite simple to use `hustcer/setup-moonbit`, just follow the example below:
 ```yaml
 steps:
   - name: Checkout
-    uses: actions/checkout@v4.1.1
+    uses: actions/checkout@v4.1.3
 
   - name: Setup Moonbit
-    uses: hustcer/setup-moonbit@v1.3
+    uses: hustcer/setup-moonbit@v1.5
 
   - name: Check Moonbit Version
     run: |
@@ -34,7 +34,7 @@ Or, check the [test.yaml](https://github.com/hustcer/setup-moonbit/blob/main/.gi
 In rare circumstances you might get rate limiting errors, if this happens you can set the `GITHUB_TOKEN` environment variable.
 
 ```yaml
-- uses: hustcer/setup-moonbit@v1.3
+- uses: hustcer/setup-moonbit@v1.5
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```

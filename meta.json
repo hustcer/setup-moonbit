@@ -1,7 +1,7 @@
 {
     "name": "Setup-MoonBit",
-    "version": "1.5.0",
-    "actionVer": "v1.5",
+    "version": "1.5.1",
+    "actionVer": "v1.5.1",
     "author": "hustcer",
     "license": "MIT",
     "github": "https://github.com/hustcer/setup-moonbit",

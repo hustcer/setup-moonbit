@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.5.1] - 2024-05-05
+
+### Features
+
+- Make sure major vesion tag always point to the latest semver tag that has the same major version
+
 ## [1.5] - 2024-04-27
 
 ### Features

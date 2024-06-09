@@ -48,10 +48,8 @@ release *OPTIONS:
 # Fetch official install scripts
 fetch:
   @if not ('.scripts' | path exists) { mkdir .scripts }; rm .scripts/*; cd .scripts; \
-    aria2c https://cli.moonbitlang.com/windows_setup.ps1; \
-    aria2c https://cli.moonbitlang.com/mac_m1_moon_setup.sh; \
-    aria2c https://cli.moonbitlang.com/mac_intel_moon_setup.sh; \
-    aria2c https://cli.moonbitlang.com/ubuntu_x86_64_moon_setup.sh
+    aria2c https://cli.moonbitlang.com/install/unix.sh; \
+    aria2c https://cli.moonbitlang.com/install/powershell.ps1
 
 # Plugins need to be registered only once after nu v0.61
 _setup:

@@ -14,7 +14,7 @@
 ```yaml
 steps:
   - name: Checkout
-    uses: actions/checkout@v4.1.3
+    uses: actions/checkout@v4.1.6
 
   - name: Setup Moonbit
     uses: hustcer/setup-moonbit@v1.5

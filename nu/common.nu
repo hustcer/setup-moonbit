@@ -7,7 +7,7 @@
 # If current host is Windows
 export def windows? [] {
   # Windows / Darwin / Linux
-  (sys).host.name == 'Windows'
+  (sys host | get name) == 'Windows'
 }
 
 # Check if some command available in current shell
@@ -73,14 +73,14 @@ export def git-check [
   cd $dest
   let isGitInstalled = (which git | length) > 0
   if (not $isGitInstalled) {
-    echo $'You should (ansi r)INSTALL git(ansi reset) first to run this command, bye...'
+    print $'You should (ansi r)INSTALL git(ansi reset) first to run this command, bye...'
     exit 2
   }
   # If we don't need repo check just quit now
   if ($check_repo != 0) {
     let checkRepo = (do -i { git rev-parse --is-inside-work-tree } | complete)
     if not ($checkRepo.stdout =~ 'true') {
-      echo $'Current directory is (ansi r)NOT(ansi reset) a git repo, bye...(char nl)'
+      print $'Current directory is (ansi r)NOT(ansi reset) a git repo, bye...(char nl)'
       exit 5
     }
   }
@@ -99,9 +99,9 @@ export def log [
   name: string,
   var: any,
 ] {
-  echo $'(ansi g)(build-line 18)> Debug Begin: ($name) <(build-line 18)(ansi reset)'
-  echo $var
-  echo $'(ansi g)(build-line 20)>  Debug End <(build-line 20)(char nl)(ansi reset)'
+  print $'(ansi g)(build-line 18)> Debug Begin: ($name) <(build-line 18)(ansi reset)'
+  print $var
+  print $'(ansi g)(build-line 20)>  Debug End <(build-line 20)(char nl)(ansi reset)'
 }
 
 export def hr-line [
@@ -110,6 +110,6 @@ export def hr-line [
   --blank-line(-b),
   --with-arrow(-a),
 ] {
-  echo $'(ansi $color)(build-line $width)(if $with_arrow {'>'})(ansi reset)'
+  print $'(ansi $color)(build-line $width)(if $with_arrow {'>'})(ansi reset)'
   if $blank_line { char nl }
 }

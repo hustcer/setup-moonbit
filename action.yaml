@@ -24,9 +24,9 @@ runs:
   using: 'composite'
   steps:
     - name: Setup Nu
-      uses: hustcer/setup-nu@v3.10
+      uses: hustcer/setup-nu@v3
       with:
-        version: '0.93.0'
+        version: '0.94.2'
 
     - name: Setup MoonBit
       shell: nu {0}

@@ -39,7 +39,7 @@ export def 'setup moonbit' [] {
   mkdir $MOONBIT_BIN_DIR; cd $MOONBIT_BIN_DIR
   let OS_INFO = $'($nu.os-info.name)_($nu.os-info.arch)'
   let DOWNLOAD_PATH = $CLI_DOWNLOAD_PATH | get -i $OS_INFO
-  if ($DOWNLOAD_PATH | is-empty) { echo $'Unsupported Platform: ($OS_INFO)'; exit 2 }
+  if ($DOWNLOAD_PATH | is-empty) { print $'Unsupported Platform: ($OS_INFO)'; exit 2 }
 
   if (windows?) {
     $WINDOWS_BINS | each {|it| fetch-bin $it $DOWNLOAD_PATH }
@@ -47,11 +47,11 @@ export def 'setup moonbit' [] {
     $DEFAULT_BINS | each {|it| fetch-bin $it $DOWNLOAD_PATH; chmod +x $it }
   }
 
-  echo 'OS Info:'; echo $nu.os-info; hr-line
-  echo $'Contents of ($MOONBIT_BIN_DIR):'; hr-line -b
-  echo (ls -l $MOONBIT_BIN_DIR)
+  print 'OS Info:'; print $nu.os-info; hr-line
+  print $'Contents of ($MOONBIT_BIN_DIR):'; hr-line -b
+  print (ls -l $MOONBIT_BIN_DIR)
   if ('GITHUB_PATH' in $env) {
-    echo $MOONBIT_BIN_DIR  | save -a $env.GITHUB_PATH
+    echo $MOONBIT_BIN_DIR  o>> $env.GITHUB_PATH
   }
 }
 

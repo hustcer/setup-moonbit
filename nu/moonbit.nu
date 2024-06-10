@@ -33,7 +33,7 @@ def fetch-bin [ bin: string, download_path: string ] {
 
 # Download moonbit binary files to local
 export def 'setup moonbit' [] {
-  let MOONBIT_BIN_DIR = [$nu.home-path '.moon'] | path join
+  let MOONBIT_BIN_DIR = [$nu.home-path .moon bin] | path join
   const DEFAULT_BINS = [moon, moonc, moonfmt, moonrun, mooninfo, moondoc, moon_cove_report]
   const WINDOWS_BINS = [moon.exe, moonc.exe, moonfmt.exe, moonrun.exe, moondoc.exe]
   mkdir $MOONBIT_BIN_DIR; cd $MOONBIT_BIN_DIR

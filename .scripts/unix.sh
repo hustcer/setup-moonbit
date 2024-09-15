@@ -107,7 +107,7 @@ CLI_MOONBIT="https://cli.moonbitlang.com"
 moonbit_uri="$CLI_MOONBIT/binaries/$version/moonbit-$target.tar.gz"
 core_uri="$CLI_MOONBIT/cores/core-$version.tar.gz"
 
-moon_home="$HOME/.moon"
+moon_home="${MOON_HOME:-$HOME/.moon}"
 bin_dir=$moon_home/bin
 exe=$bin_dir/moon
 moonbit_dest=$bin_dir/moonbit.tar.gz
@@ -175,7 +175,9 @@ tildify() {
 
 success "moonbit was installed successfully to $Bold_Green$(tildify "$moon_home")"
 
-echo "To verify the download binaries, you can check https://www.moonbitlang.com/download#verifying-binaries for instructions."
+echo "To verify the downloaded binaries, check https://www.moonbitlang.com/download#verifying-binaries for instructions."
+
+echo "To know how to add shell completions, run 'moon shell-completion --help'"
 
 if command -v moon >/dev/null 2>&1; then
   echo "Run 'moon help' to get started"

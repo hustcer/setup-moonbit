@@ -72,4 +72,6 @@ else {
   Write-Output "Moonbit installed successfully."
 }
 
-Write-Output "To verify the download binaries, you can check https://www.moonbitlang.com/download#verifying-binaries for instructions."
+Write-Output "To verify the download binaries, check https://www.moonbitlang.com/download#verifying-binaries for instructions."
+
+Write-Output "To know how to add shell completions, run 'moon shell-completion --help'"

@@ -1,6 +1,27 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.6.0] - 2024-09-16
+
+### Bug Fixes
+
+- Fix just fetch command
+- Fix moonbit setup and release scripts
+
+### Features
+
+- Add download specified version of moonbit toolchains support
+- Add version input to action
+
+### Miscellaneous Tasks
+
+- Change bin dir from ~/.moon to ~/.moon/bin
+- Update Nu to v0.97.1
+
+### Deps
+
+- Upgrade actions/checkout and use latest version of Nu for action
+
 ## [1.5.1] - 2024-05-05
 
 ### Features

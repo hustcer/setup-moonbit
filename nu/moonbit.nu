@@ -6,6 +6,8 @@
 #   [x] Support Windows, macOS, Linux
 #   [x] This script should run both in Github Runners and local machines
 #   [x] Setup moonbit toolchains of specified version
+#   [x] Setup Moonbit Core support
+#   [ ] Setup monnbit core of `bleeding` version support
 # Description: Scripts for setting up MoonBit environment
 # Usage:
 #    setup moonbit
@@ -29,6 +31,7 @@ export-env {
 # Download binary file from CLI_HOST with aira2c or `http get`
 def fetch-release [ version: string, archive: string ] {
   let version = $version | str replace + %2B
+  print $'Fetch binaries from (ansi g)($CLI_HOST)/binaries/($version)/($archive)(ansi reset)'
   if (is-installed aria2c) {
     aria2c --allow-overwrite $'($CLI_HOST)/binaries/($version)/($archive)'
   } else {

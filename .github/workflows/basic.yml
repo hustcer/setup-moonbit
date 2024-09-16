@@ -26,8 +26,6 @@ jobs:
 
       - name: Setup Moonbit
         uses: hustcer/setup-moonbit@develop
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check Moonbit Version
         run: |
@@ -48,8 +46,6 @@ jobs:
         with:
           setup-core: false
           version: 0.1.20240910+3af041b9a
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check Moonbit Version
         run: |

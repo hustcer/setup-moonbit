@@ -36,13 +36,33 @@ def fetch-release [ version: string, archive: string ] {
   }
 }
 
+# Download moonbit core from CLI_HOST with aira2c or `http get`
+def fetch-core [ version: string ] {
+  let version = $version | str replace + %2B
+  let suffix = if (windows?) { $'($version).zip' } else { $'($version).tar.gz' }
+  if (is-installed aria2c) {
+    aria2c --allow-overwrite $'($CLI_HOST)/cores/core-($suffix)'
+  } else {
+    http get $'($CLI_HOST)/cores/core-($suffix)' | save --progress --force $'core-($suffix)'
+  }
+}
+
 # Download moonbit binary files to local
-export def 'setup moonbit' [version: string = 'latest'] {
+export def 'setup moonbit' [
+  version: string = 'latest',   # The version of moonbit toolchain to setup, and `latest` by default
+  --setup-core(-c),             # Setup moonbit core
+] {
   let MOONBIT_BIN_DIR = [$nu.home-path .moon bin] | path join
-  mkdir $MOONBIT_BIN_DIR; cd $MOONBIT_BIN_DIR
+  let MOONBIT_LIB_DIR = [$nu.home-path .moon lib] | path join
+  if not ($MOONBIT_BIN_DIR | path exists) { mkdir $MOONBIT_BIN_DIR; }
+  if not ($MOONBIT_LIB_DIR | path exists) { mkdir $MOONBIT_LIB_DIR; }
+
+  cd $MOONBIT_BIN_DIR
   let OS_INFO = $'($nu.os-info.name)_($nu.os-info.arch)'
   let archive = $ARCH_TARGET_MAP | get -i $OS_INFO
   if ($archive | is-empty) { print $'Unsupported Platform: ($OS_INFO)'; exit 2 }
+
+  print $'(char nl)Setup moonbit toolchain of version: (ansi g)($version)(ansi reset)'; hr-line
 
   if (windows?) {
     fetch-release $version $'moonbit-($archive).zip'
@@ -60,6 +80,20 @@ export def 'setup moonbit' [version: string = 'latest'] {
   print (ls $MOONBIT_BIN_DIR)
   if ('GITHUB_PATH' in $env) {
     echo $MOONBIT_BIN_DIR  o>> $env.GITHUB_PATH
+  }
+
+  if $setup_core {
+    print $'(char nl)Setup moonbit core of version: (ansi g)($version)(ansi reset)'; hr-line
+    cd $MOONBIT_LIB_DIR; rm -rf ./core/*
+    fetch-core $version
+    if (windows?) {
+      unzip core*.zip -d $MOONBIT_LIB_DIR; rm core*.zip
+      ^$'($MOONBIT_BIN_DIR)/moon.exe' bundle --all --source-dir $'($MOONBIT_LIB_DIR)/core'
+    } else {
+      tar xf core*.tar.gz --directory $MOONBIT_LIB_DIR; rm core*.tar.gz
+      $env.PATH = ($env.PATH | split row (char esep) | prepend $MOONBIT_BIN_DIR)
+      moon bundle --all --source-dir $'($MOONBIT_LIB_DIR)/core'
+    }
   }
 }
 

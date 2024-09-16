@@ -7,7 +7,7 @@
 #   [x] This script should run both in Github Runners and local machines
 #   [x] Setup moonbit toolchains of specified version
 #   [x] Setup Moonbit Core support
-#   [ ] Setup monnbit core of `bleeding` version support
+#   [?] Setup monnbit core of `bleeding` version support
 # Description: Scripts for setting up MoonBit environment
 # Usage:
 #    setup moonbit
@@ -84,17 +84,28 @@ export def 'setup moonbit' [
   if ('GITHUB_PATH' in $env) {
     echo $MOONBIT_BIN_DIR  o>> $env.GITHUB_PATH
   }
+  if ('Path' in $env) {
+    $env.Path = ($env.Path | split row (char esep) | prepend $MOONBIT_BIN_DIR)
+  }
+  if ('PATH' in $env) {
+    $env.PATH = ($env.PATH | split row (char esep) | prepend $MOONBIT_BIN_DIR)
+  }
 
   if $setup_core {
     print $'(char nl)Setup moonbit core of version: (ansi g)($version)(ansi reset)'; hr-line
     cd $MOONBIT_LIB_DIR; rm -rf ./core/*
+    if $version == 'bleeding' {
+      git clone --depth 1 https://github.com/moonbitlang/core.git $'($MOONBIT_LIB_DIR)/core'
+      moon bundle --all --source-dir $'($MOONBIT_LIB_DIR)/core'
+      return
+    }
+
     fetch-core $version
     if (windows?) {
       unzip core*.zip -d $MOONBIT_LIB_DIR; rm core*.zip
-      ^$'($MOONBIT_BIN_DIR)/moon.exe' bundle --all --source-dir $'($MOONBIT_LIB_DIR)/core'
+      moon.exe bundle --all --source-dir $'($MOONBIT_LIB_DIR)/core'
     } else {
       tar xf core*.tar.gz --directory $MOONBIT_LIB_DIR; rm core*.tar.gz
-      $env.PATH = ($env.PATH | split row (char esep) | prepend $MOONBIT_BIN_DIR)
       moon bundle --all --source-dir $'($MOONBIT_LIB_DIR)/core'
     }
   }

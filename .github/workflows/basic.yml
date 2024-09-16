@@ -30,6 +30,25 @@ jobs:
 
       - name: Check Moonbit Version
         run: |
-          moon version
-          moonc -v
-          moonrun --version
+          moon version --all
+
+  setup-moonbit-of-version:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    name: Setup MoonBit with Version@${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.7
+
+      - name: Setup Moonbit with Version
+        uses: hustcer/setup-moonbit@develop
+        with:
+          version: 0.1.20240910+3af041b9a
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Moonbit Version
+        run: |
+          moon version --all

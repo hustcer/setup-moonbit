@@ -33,9 +33,7 @@ jobs:
 
       - name: Check Moonbit Version
         run: |
-          moon version
-          moonc -v
-          moonrun --version
+          moon version --all
 
       - name: Create an Issue for Release Failure
         if: ${{ failure() }}

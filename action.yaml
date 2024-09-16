@@ -15,10 +15,10 @@ branding:
   color: 'purple'
 
 inputs:
-  action:
+  version:
     required: false
-    default: 'nothing'
-    description: 'Just a Test input, no input required currently.'
+    default: 'latest'
+    description: 'The moonbit toolchain version to setup.'
 
 runs:
   using: 'composite'
@@ -32,5 +32,6 @@ runs:
       shell: nu {0}
       run: |
         use ${{ github.action_path }}/nu/moonbit.nu *
-        setup moonbit
+        let version = '${{inputs.version}}'
+        setup moonbit $version
 

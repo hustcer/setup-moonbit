@@ -30,6 +30,4 @@ jobs:
 
       - name: Check Moonbit Version
         run: |
-          moon version
-          moonc -v
-          moonrun --version
+          moon version --all

@@ -5,6 +5,7 @@
 #   [x] Install all moon* binaries
 #   [x] Support Windows, macOS, Linux
 #   [x] This script should run both in Github Runners and local machines
+#   [x] Setup moonbit toolchains of specified version
 # Description: Scripts for setting up MoonBit environment
 # Usage:
 #    setup moonbit

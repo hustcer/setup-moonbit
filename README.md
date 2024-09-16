@@ -4,13 +4,13 @@
 
 [![Setup-Moonbit@Dev](https://github.com/hustcer/setup-moonbit/actions/workflows/basic.yml/badge.svg)](https://github.com/hustcer/setup-moonbit/actions/workflows/basic.yml)
 
-This GitHub Action will setup a [MoonBit](https://www.moonbitlang.com/) environment for you. It should work on Github `macos`, `ubuntu`, and `Windows` runners.
+This GitHub Action will setup a [MoonBit](https://www.moonbitlang.com/) environment for you. It should work on Github `macos` , `ubuntu` , and `Windows` runners.
 
 ## Usage
 
 ### Basic
 
-It's quite simple to use `hustcer/setup-moonbit`, just follow the example below:
+It's quite simple to use `hustcer/setup-moonbit` , just follow the example below:
 
 ```yaml
 steps:
@@ -22,11 +22,7 @@ steps:
 
   - name: Check Moonbit Version
     run: |
-        moon version
-        moonc -v
-        moonrun --version
-        moon new hello && cd hello
-        moon run main
+        moon version --all
 ```
 
 Or, check the [test.yaml](https://github.com/hustcer/setup-moonbit/blob/main/.github/workflows/test.yml) example.
@@ -41,10 +37,12 @@ In rare circumstances you might get rate limiting errors, if this happens you ca
 
 ### Inputs
 
-Currently no input required
+| Name             | Required | Description  | Type   | Default   |
+| ---------------- | -------- | ------------ | ------ | --------- |
+| `version`        | no       | A valid moonbit tool chain version, such as `0.1.20240910+3af041b9a` , etc.  | string | `latest`|
 
 ## License
 
 Licensed under:
 
-- MIT license ([LICENSE](LICENSE) or http://opensource.org/licenses/MIT)
+* MIT license ([LICENSE](LICENSE) or http://opensource.org/licenses/MIT)

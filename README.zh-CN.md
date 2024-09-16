@@ -2,8 +2,7 @@
 
 [![Setup-Moonbit@Dev](https://github.com/hustcer/setup-moonbit/actions/workflows/basic.yml/badge.svg)](https://github.com/hustcer/setup-moonbit/actions/workflows/basic.yml)
 
-本 GitHub Action 将为你配置一个 [MoonBit](https://www.moonbitlang.com/) 开发环境。适用于 Github `macos`, `ubuntu` 和 `Windows` 工作流运行时镜像。
-
+本 GitHub Action 将为你配置一个 [MoonBit](https://www.moonbitlang.com/) 开发环境。适用于 Github `macos` , `ubuntu` 和 `Windows` 工作流运行时镜像。
 
 ## 使用
 
@@ -21,11 +20,7 @@ steps:
 
   - name: Check Moonbit Version
     run: |
-        moon version
-        moonc -v
-        moonrun --version
-        moon new hello && cd hello
-        moon run main
+        moon version --all
 ```
 
 或者也可以参考下本仓库的 [test.yaml](https://github.com/hustcer/setup-moonbit/blob/main/.github/workflows/test.yml) 例子。
@@ -40,10 +35,12 @@ steps:
 
 ### 输入
 
-目前本 Action 不需要任何输入
+| 参数名  | 必填    | 描述    | 类型   | 默认值   |
+| ---------------- | -------- | --- | ------ | --------- |
+| `version` | 否    | 合法的 Moonbit 工具链版本，比如: `0.1.20240910+3af041b9a` | 字符串 | `latest` |
 
 ## 许可
 
 Licensed under:
 
-- MIT license ([LICENSE](LICENSE) or http://opensource.org/licenses/MIT)
+* MIT license ([LICENSE](LICENSE) or http://opensource.org/licenses/MIT)

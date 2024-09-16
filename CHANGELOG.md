@@ -1,6 +1,17 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.6.1] - 2024-09-16
+
+### Features
+
+- Add `setup-core` input support
+- Add `bleeding` version support for macOS only
+
+### Miscellaneous Tasks
+
+- Try to remove GITHUB_TOKEN env setting
+
 ## [1.6.0] - 2024-09-16
 
 ### Bug Fixes

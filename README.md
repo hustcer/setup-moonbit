@@ -18,7 +18,7 @@ steps:
     uses: actions/checkout@v4.1.7
 
   - name: Setup Moonbit
-    uses: hustcer/setup-moonbit@v1.5
+    uses: hustcer/setup-moonbit@v1
 
   - name: Check Moonbit Version
     run: |
@@ -30,7 +30,7 @@ Or, check the [test.yaml](https://github.com/hustcer/setup-moonbit/blob/main/.gi
 In rare circumstances you might get rate limiting errors, if this happens you can set the `GITHUB_TOKEN` environment variable.
 
 ```yaml
-- uses: hustcer/setup-moonbit@v1.5
+- uses: hustcer/setup-moonbit@v1
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```

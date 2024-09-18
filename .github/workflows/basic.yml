@@ -22,7 +22,7 @@ jobs:
     name: Setup MoonBit@${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4
 
       - name: Setup Moonbit
         uses: hustcer/setup-moonbit@develop
@@ -39,7 +39,7 @@ jobs:
     name: Setup MoonBit with Version@${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4
 
       - name: Setup Moonbit with Version
         uses: hustcer/setup-moonbit@develop
@@ -60,7 +60,7 @@ jobs:
     name: Setup MoonBit Bleeding@${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4
 
       - name: Setup Moonbit Bleeding
         uses: hustcer/setup-moonbit@develop

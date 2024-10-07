@@ -15,7 +15,7 @@ It's quite simple to use `hustcer/setup-moonbit` , just follow the example below
 ```yaml
 steps:
   - name: Checkout
-    uses: actions/checkout@v4.1.7
+    uses: actions/checkout@v4
 
   - name: Setup Moonbit
     uses: hustcer/setup-moonbit@v1

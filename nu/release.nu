@@ -5,7 +5,7 @@
 #
 # TODO:
 #   [√] Make sure the release tag does not exist;
-#   [√] Make sure there are no uncommit changes;
+#   [√] Make sure there are no uncommitted changes;
 #   [√] Update change log if required;
 #   [√] Create a release tag and push it to the remote repo;
 # Usage:

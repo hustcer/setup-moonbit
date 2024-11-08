@@ -2,12 +2,12 @@
 # Author: hustcer
 # Created: 2023/11/02 20:33:15
 # TODO:
-#   [x] Install all moon* binaries
-#   [x] Support Windows, macOS, Linux
-#   [x] This script should run both in Github Runners and local machines
-#   [x] Setup moonbit toolchains of specified version
-#   [x] Setup Moonbit Core support
-#   [?] Setup monnbit core of `bleeding` version support
+#   [√] Install all moon* binaries
+#   [√] Support Windows, macOS, Linux
+#   [√] This script should run both in Github Runners and local machines
+#   [√] Setup moonbit toolchains of specified version
+#   [√] Setup Moonbit Core support
+#   [√] Setup monnbit core of `bleeding` version support
 # Description: Scripts for setting up MoonBit environment
 # Usage:
 #    setup moonbit
@@ -74,7 +74,11 @@ export def 'setup moonbit' [
   } else {
     fetch-release $version $'moonbit-($archive).tar.gz'
     tar xf $'moonbit-($archive).tar.gz' --directory $MOONBIT_BIN_DIR
-    ls $MOONBIT_BIN_DIR | get name | each { chmod u+x $in }
+    const IGNORE = [libtcc1.a]
+    ls $MOONBIT_BIN_DIR
+      | get name
+      | filter { ($in | path basename) not-in $IGNORE }
+      | each { chmod +x $in }
     rm moonbit*.tar.gz
   }
 
@@ -104,9 +108,11 @@ export def 'setup moonbit' [
     if (windows?) {
       unzip core*.zip -d $MOONBIT_LIB_DIR; rm core*.zip
       moon.exe bundle --all --source-dir $'($MOONBIT_LIB_DIR)/core'
+      moon.exe bundle --target wasm-gc --source-dir $'($MOONBIT_LIB_DIR)/core' --quiet
     } else {
       tar xf core*.tar.gz --directory $MOONBIT_LIB_DIR; rm core*.tar.gz
       moon bundle --all --source-dir $'($MOONBIT_LIB_DIR)/core'
+      moon bundle --target wasm-gc --source-dir $'($MOONBIT_LIB_DIR)/core' --quiet
     }
   }
 }

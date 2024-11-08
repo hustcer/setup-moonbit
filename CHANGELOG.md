@@ -1,6 +1,20 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.7.0] - 2024-11-08
+
+### Features
+
+- Add wasm-gc bundle target for moonbit core lib (#20)
+- Upgrade `Nushell` to v0.99.1
+
+### Miscellaneous Tasks
+
+- Change action icon from code to circle
+- Quiet unzip output for Windows (#23)
+- Add cspell checking hook
+- Add milestone workflow (#18)
+
 ## [1.6.1] - 2024-09-16
 
 ### Features

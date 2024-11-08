@@ -136,6 +136,7 @@ rm -f "$moonbit_dest" ||
 
 pushd "$bin_dir" >/dev/null || error "Failed to change directory to \"$bin_dir\""
   for i in *; do
+    [ "$i" == "libtcc1.a" ] && continue
     chmod +x "$i" ||
       error "Failed to make \"$i\" executable"
   done
@@ -163,6 +164,9 @@ echo "Bundling core ..."
 
 PATH=$bin_dir $exe bundle --all --source-dir "$lib_dir"/core ||
   error "Failed to bundle core"
+
+PATH=$bin_dir $exe bundle --target wasm-gc --source-dir "$lib_dir"/core --quiet ||
+  error "Failed to bundle core to wasm-gc"
 
 tildify() {
   if [[ $1 = $HOME/* ]]; then

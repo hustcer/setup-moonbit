@@ -52,6 +52,7 @@ try {
   $OldPath = $env:Path
   $env:Path = $MoonBin
   moon.exe bundle --all
+  moon.exe bundle --target wasm-gc --quiet
   $env:PATH = $OldPath
 
   Pop-Location

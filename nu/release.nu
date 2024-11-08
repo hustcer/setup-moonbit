@@ -25,7 +25,7 @@ export def 'make-release' [
   let majorTag = $releaseVer | split row '.' | first
   let statusCheck = (git status --porcelain)
   if not ($statusCheck | is-empty) {
-  	echo $'You have uncommit changes, please commit them and try `release` again!(char nl)'
+  	echo $'You have uncommitted changes, please commit them and try `release` again!(char nl)'
   	exit 5
   }
   if ($update_log) {

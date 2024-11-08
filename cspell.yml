@@ -1,0 +1,22 @@
+# REF:
+#   https://cspell.org/configuration/
+# Usage:
+#   npx cspell --no-progress .
+
+words:
+- msvc
+- esep
+- rsort
+- ECODE
+- endfor
+- dotenv
+- libtcc
+- nushell
+- hustcer
+- rsbuild
+- moonbit
+- moondoc
+- justfile
+- lefthook
+- linewise
+ignorePaths:

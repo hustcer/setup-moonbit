@@ -7,7 +7,7 @@
 #   [√] This script should run both in Github Runners and local machines
 #   [√] Setup moonbit toolchains of specified version
 #   [√] Setup Moonbit Core support
-#   [√] Setup monnbit core of `bleeding` version support
+#   [√] Setup moonbit core of `bleeding` version support
 # Description: Scripts for setting up MoonBit environment
 # Usage:
 #    setup moonbit
@@ -28,7 +28,7 @@ export-env {
   $env.config.color_config.leading_trailing_space_bg = { attr: n }
 }
 
-# Download binary file from CLI_HOST with aira2c or `http get`
+# Download binary file from CLI_HOST with aria2c or `http get`
 def fetch-release [ version: string, archive: string ] {
   let version = $version | str replace + %2B
   print $'Fetch binaries from (ansi g)($CLI_HOST)/binaries/($version)/($archive)(ansi reset)'
@@ -39,7 +39,7 @@ def fetch-release [ version: string, archive: string ] {
   }
 }
 
-# Download moonbit core from CLI_HOST with aira2c or `http get`
+# Download moonbit core from CLI_HOST with aria2c or `http get`
 def fetch-core [ version: string ] {
   let version = $version | str replace + %2B
   let suffix = if (windows?) { $'($version).zip' } else { $'($version).tar.gz' }

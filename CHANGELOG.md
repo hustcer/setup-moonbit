@@ -37,7 +37,7 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
-- Make sure major vesion tag always point to the latest semver tag that has the same major version
+- Make sure major version tag always point to the latest semver tag that has the same major version
 
 ## [1.5] - 2024-04-27
 
@@ -64,7 +64,7 @@ All notable changes to this project will be documented in this file.
 
 - Add daily checking workflow to make sure `setup-moonbit` works, close #1 (#3)
 - Make moonbit.nu works on both Github runners and local machine
-- Use `http get` instead of `aria2c` for binary downloading when `aira2c` is not installed (#9)
+- Use `http get` instead of `aria2c` for binary downloading when `aria2c` is not installed (#9)
 - Add moondoc command
 
 ### Miscellaneous Tasks

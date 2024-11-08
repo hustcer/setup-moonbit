@@ -101,19 +101,19 @@ export def 'setup moonbit' [
     if $version == 'bleeding' {
       git clone --depth 1 https://github.com/moonbitlang/core.git $'($MOONBIT_LIB_DIR)/core'
       moon bundle --all --source-dir $'($MOONBIT_LIB_DIR)/core'
+      moon bundle --target wasm-gc --source-dir $'($MOONBIT_LIB_DIR)/core' --quiet
       return
     }
 
     fetch-core $version
+    let moonBin = if (windows?) { 'moon.exe' } else { 'moon' }
     if (windows?) {
       unzip core*.zip -d $MOONBIT_LIB_DIR; rm core*.zip
-      moon.exe bundle --all --source-dir $'($MOONBIT_LIB_DIR)/core'
-      moon.exe bundle --target wasm-gc --source-dir $'($MOONBIT_LIB_DIR)/core' --quiet
     } else {
       tar xf core*.tar.gz --directory $MOONBIT_LIB_DIR; rm core*.tar.gz
-      moon bundle --all --source-dir $'($MOONBIT_LIB_DIR)/core'
-      moon bundle --target wasm-gc --source-dir $'($MOONBIT_LIB_DIR)/core' --quiet
     }
+    ^$moonBin bundle --all --source-dir $'($MOONBIT_LIB_DIR)/core'
+    ^$moonBin bundle --target wasm-gc --source-dir $'($MOONBIT_LIB_DIR)/core' --quiet
   }
 }
 

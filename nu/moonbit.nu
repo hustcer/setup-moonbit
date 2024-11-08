@@ -108,7 +108,7 @@ export def 'setup moonbit' [
     if (windows?) {
       unzip core*.zip -d $MOONBIT_LIB_DIR; rm core*.zip
       moon.exe bundle --all --source-dir $'($MOONBIT_LIB_DIR)/core'
-      moon.exe bundle --target wasm-gc --quiet
+      moon.exe bundle --target wasm-gc --source-dir $'($MOONBIT_LIB_DIR)/core' --quiet
     } else {
       tar xf core*.tar.gz --directory $MOONBIT_LIB_DIR; rm core*.tar.gz
       moon bundle --all --source-dir $'($MOONBIT_LIB_DIR)/core'

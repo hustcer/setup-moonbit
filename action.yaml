@@ -11,7 +11,7 @@ author: 'hustcer'
 description: 'A github action to setup MoonBit environment'
 
 branding:
-  icon: 'circle'
+  icon: 'code'
   color: 'purple'
 
 inputs:

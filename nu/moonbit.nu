@@ -57,12 +57,14 @@ export def 'setup moonbit' [
 ] {
   let MOONBIT_BIN_DIR = [$nu.home-path .moon bin] | path join
   let MOONBIT_LIB_DIR = [$nu.home-path .moon lib] | path join
+  let coreDir = $'($MOONBIT_LIB_DIR)/core'
   if not ($MOONBIT_BIN_DIR | path exists) { mkdir $MOONBIT_BIN_DIR; }
   if not ($MOONBIT_LIB_DIR | path exists) { mkdir $MOONBIT_LIB_DIR; }
 
   cd $MOONBIT_BIN_DIR
   let OS_INFO = $'($nu.os-info.name)_($nu.os-info.arch)'
   let archive = $ARCH_TARGET_MAP | get -i $OS_INFO
+  let moonBin = if (windows?) { 'moon.exe' } else { 'moon' }
   if ($archive | is-empty) { print $'Unsupported Platform: ($OS_INFO)'; exit 2 }
 
   print $'(char nl)Setup moonbit toolchain of version: (ansi g)($version)(ansi reset)'; hr-line
@@ -99,21 +101,22 @@ export def 'setup moonbit' [
     print $'(char nl)Setup moonbit core of version: (ansi g)($version)(ansi reset)'; hr-line
     cd $MOONBIT_LIB_DIR; rm -rf ./core/*
     if $version == 'bleeding' {
-      git clone --depth 1 https://github.com/moonbitlang/core.git $'($MOONBIT_LIB_DIR)/core'
-      moon bundle --all --source-dir $'($MOONBIT_LIB_DIR)/core'
-      moon bundle --target wasm-gc --source-dir $'($MOONBIT_LIB_DIR)/core' --quiet
+      if ($coreDir | path exists) { rm -rf $coreDir }
+      git clone --depth 1 https://github.com/moonbitlang/core.git $coreDir
+      ^$moonBin bundle --all --source-dir $coreDir
+      ^$moonBin bundle --target wasm-gc --source-dir $coreDir --quiet
       return
     }
 
     fetch-core $version
-    let moonBin = if (windows?) { 'moon.exe' } else { 'moon' }
+
     if (windows?) {
       unzip -q core*.zip -d $MOONBIT_LIB_DIR; rm core*.zip
     } else {
       tar xf core*.tar.gz --directory $MOONBIT_LIB_DIR; rm core*.tar.gz
     }
-    ^$moonBin bundle --all --source-dir $'($MOONBIT_LIB_DIR)/core'
-    ^$moonBin bundle --target wasm-gc --source-dir $'($MOONBIT_LIB_DIR)/core' --quiet
+    ^$moonBin bundle --all --source-dir $coreDir
+    ^$moonBin bundle --target wasm-gc --source-dir $coreDir --quiet
   }
 }
 

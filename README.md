@@ -39,7 +39,7 @@ In rare circumstances you might get rate limiting errors, if this happens you ca
 
 | Name         | Required | Description  | Type   | Default   |
 | ------------ | -------- | ------------ | ------ | --------- |
-| `version`    | no       | A valid moonbit tool chain version, such as `0.1.20241104+8ce5d2967`, `nightly` , etc. or `bleeding` (currently for macOS only) | string | `latest`|
+| `version`    | no       | A valid moonbit tool chain version, such as `0.1.20241104+8ce5d2967`, `nightly` , etc. or `bleeding` | string | `latest`|
 | `setup-core` | no       | `true` to download and bundle Moonbit Core, `false` to ignore it | bool | `true` |
 
 ## License

@@ -1,6 +1,21 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.8.0]
+
+### Features
+
+- Add nightly version support (#25)
+- Add bleeding version support (#27)
+
+### Miscellaneous Tasks
+
+- Update daily checking workflow, add develop and main branch check
+
+### Refactor
+
+- Add bundle-core helper
+
 ## [1.7.0] - 2024-11-08
 
 ### Features

@@ -44,3 +44,36 @@ jobs:
           update_existing: true
           search_existing: open
           filename: .github/AUTO_ISSUE_TEMPLATE/daily-checking-fail.md
+
+  setup-nightly:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+    name: Setup Nightly@${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Moonbit
+        uses: hustcer/setup-moonbit@v1
+        with:
+          version: nightly
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Moonbit Version
+        run: |
+          moon version --all
+
+      - name: Create an Issue for Release Failure
+        if: ${{ failure() }}
+        uses: JasonEtco/create-an-issue@v2.9.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          update_existing: true
+          search_existing: open
+          filename: .github/AUTO_ISSUE_TEMPLATE/daily-checking-fail.md

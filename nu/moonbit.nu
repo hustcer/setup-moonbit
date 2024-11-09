@@ -64,7 +64,6 @@ export def 'setup moonbit' [
   cd $MOONBIT_BIN_DIR
   let OS_INFO = $'($nu.os-info.name)_($nu.os-info.arch)'
   let archive = $ARCH_TARGET_MAP | get -i $OS_INFO
-  let moonBin = if (windows?) { 'moon.exe' } else { 'moon' }
   if ($archive | is-empty) { print $'Unsupported Platform: ($OS_INFO)'; exit 2 }
 
   print $'(char nl)Setup moonbit toolchain of version: (ansi g)($version)(ansi reset)'; hr-line
@@ -103,8 +102,7 @@ export def 'setup moonbit' [
     if $version == 'bleeding' {
       if ($coreDir | path exists) { rm -rf $coreDir }
       git clone --depth 1 https://github.com/moonbitlang/core.git $coreDir
-      ^$moonBin bundle --all --source-dir $coreDir
-      ^$moonBin bundle --target wasm-gc --source-dir $coreDir --quiet
+      bundle-core $coreDir
       return
     }
 
@@ -115,8 +113,23 @@ export def 'setup moonbit' [
     } else {
       tar xf core*.tar.gz --directory $MOONBIT_LIB_DIR; rm core*.tar.gz
     }
+    bundle-core $coreDir
+  }
+}
+
+# Bundle moonbit core
+def bundle-core [coreDir: string] {
+  let moonBin = if (windows?) { 'moon.exe' } else { 'moon' }
+  print $'(char nl)Bundle moonbit core(ansi reset)'; hr-line
+  try {
     ^$moonBin bundle --all --source-dir $coreDir
+  } catch {
+    print $'(ansi red)Failed to bundle core(ansi reset)'
+  }
+  try {
     ^$moonBin bundle --target wasm-gc --source-dir $coreDir --quiet
+  } catch {
+    print $'(ansi red)Failed to bundle core to wasm-gc(ansi reset)'
   }
 }
 

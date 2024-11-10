@@ -5,7 +5,7 @@
 [![Setup-Moonbit@Dev](https://github.com/hustcer/setup-moonbit/actions/workflows/basic.yml/badge.svg)](https://github.com/hustcer/setup-moonbit/actions/workflows/basic.yml)
 [![Daily Checking](https://github.com/hustcer/setup-moonbit/actions/workflows/daily.yml/badge.svg)](https://github.com/hustcer/setup-moonbit/actions/workflows/daily.yml)
 
-This GitHub Action will setup a [MoonBit](https://www.moonbitlang.com/) environment for you. It should work on Github `macos` , `ubuntu` , and `Windows` runners.
+This GitHub Action will setup a [MoonBit](https://www.moonbitlang.com/) environment for you. It should work on Github `macOS` , `Ubuntu` , and `Windows` runners.
 
 ## Usage
 
@@ -40,7 +40,7 @@ In rare circumstances you might get rate limiting errors, if this happens you ca
 
 | Name         | Required | Description  | Type   | Default   |
 | ------------ | -------- | ------------ | ------ | --------- |
-| `version`    | no       | A valid moonbit tool chain version, such as `0.1.20241104+8ce5d2967`, `nightly` , etc. or `bleeding` | string | `latest`|
+| `version`    | no       | A valid moonbit tool chain version, such as `0.1.20241104+8ce5d2967`, `nightly`, `latest`, etc. or even `bleeding` | string | `latest`|
 | `setup-core` | no       | `true` to download and bundle Moonbit Core, `false` to ignore it | bool | `true` |
 
 ## License

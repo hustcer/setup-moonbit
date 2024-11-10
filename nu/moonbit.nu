@@ -58,8 +58,8 @@ export def 'setup moonbit' [
   let MOONBIT_BIN_DIR = [$nu.home-path .moon bin] | path join
   let MOONBIT_LIB_DIR = [$nu.home-path .moon lib] | path join
   let coreDir = $'($MOONBIT_LIB_DIR)/core'
-  if not ($MOONBIT_BIN_DIR | path exists) { mkdir $MOONBIT_BIN_DIR; }
-  if not ($MOONBIT_LIB_DIR | path exists) { mkdir $MOONBIT_LIB_DIR; }
+  if not ($MOONBIT_BIN_DIR | path exists) { mkdir $MOONBIT_BIN_DIR }
+  if not ($MOONBIT_LIB_DIR | path exists) { mkdir $MOONBIT_LIB_DIR }
 
   cd $MOONBIT_BIN_DIR
   let OS_INFO = $'($nu.os-info.name)_($nu.os-info.arch)'

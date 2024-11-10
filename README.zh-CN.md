@@ -2,7 +2,7 @@
 
 [![Setup-Moonbit@Dev](https://github.com/hustcer/setup-moonbit/actions/workflows/basic.yml/badge.svg)](https://github.com/hustcer/setup-moonbit/actions/workflows/basic.yml)
 
-本 GitHub Action 将为你配置一个 [MoonBit](https://www.moonbitlang.com/) 开发环境。适用于 Github `macos` , `ubuntu` 和 `Windows` 工作流运行时镜像。
+本 GitHub Action 将为你配置一个 [MoonBit](https://www.moonbitlang.com/) 开发环境。适用于 Github `macOS` , `Ubuntu` 和 `Windows` 工作流运行时镜像。
 
 ## 使用
 
@@ -37,7 +37,7 @@ steps:
 
 | 参数名  | 必填    | 描述    | 类型   | 默认值   |
 | ---------------- | -------- | --- | ------ | --------- |
-| `version` | 否    | 合法的 Moonbit 工具链版本，比如: `0.1.20241104+8ce5d2967`, `nightly` 或者 `bleeding` |  string | `latest` |
+| `version` | 否    | 合法的 Moonbit 工具链版本，比如: `0.1.20241104+8ce5d2967`, `nightly`, `latest` 或者 `bleeding` |  string | `latest` |
 | `setup-core` | 否 | 设置为 `true` 则下载并打包 Moonbit Core, `false` 则忽略 | bool | `true` |
 
 ## 许可

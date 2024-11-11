@@ -13,8 +13,6 @@
 #    setup moonbit
 #    setup moonbit 0.1.20240910+3af041b9a
 
-use common.nu [hr-line windows? is-installed]
-
 const CLI_HOST = 'https://cli.moonbitlang.com'
 
 const ARCH_TARGET_MAP = {
@@ -131,6 +129,35 @@ def bundle-core [coreDir: string] {
   } catch {
     print $'(ansi red)Failed to bundle core to wasm-gc(ansi reset)'
   }
+}
+
+# If current host is Windows
+export def windows? [] {
+  # Windows / Darwin / Linux
+  (sys host | get name) == 'Windows'
+}
+
+# Check if some command available in current shell
+export def is-installed [ app: string ] {
+  (which $app | length) > 0
+}
+
+export def hr-line [
+  width?: int = 90,
+  --color(-c): string = 'g',
+  --blank-line(-b),
+  --with-arrow(-a),
+] {
+  # Create a line by repeating the unit with specified times
+  def build-line [
+    times: int,
+    unit: string = '-',
+  ] {
+    0..<$times | reduce -f '' { |i, acc| $unit + $acc }
+  }
+
+  print $'(ansi $color)(build-line $width)(if $with_arrow {'>'})(ansi reset)'
+  if $blank_line { char nl }
 }
 
 alias main = setup moonbit

@@ -33,6 +33,7 @@ jobs:
 
   setup-moonbit-of-version:
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
@@ -45,7 +46,7 @@ jobs:
         uses: hustcer/setup-moonbit@develop
         with:
           setup-core: false
-          version: 0.1.20241104+8ce5d2967
+          version: 0.1.20241223+62b9a1a85
 
       - name: Check Moonbit Version
         run: |

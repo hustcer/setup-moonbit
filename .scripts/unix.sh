@@ -110,36 +110,43 @@ core_uri="$CLI_MOONBIT/cores/core-$version.tar.gz"
 moon_home="${MOON_HOME:-$HOME/.moon}"
 bin_dir=$moon_home/bin
 exe=$bin_dir/moon
-moonbit_dest=$bin_dir/moonbit.tar.gz
+moonbit_dest=$HOME/moonbit.tar.gz
 lib_dir=$moon_home/lib
 core_dest=$lib_dir/core.tar.gz
 
-if [[ ! -d $bin_dir ]]; then
-  mkdir -p "$bin_dir" ||
-    error "Failed to create directory: \"$bin_dir\""
+if [[ -z $moon_home ]]; then
+  error "MOON_HOME is not set"
 fi
 
-if [[ ! -d $lib_dir ]]; then
-  mkdir -p "$lib_dir" ||
-    error "Failed to create directory: \"$lib_dir\""
-fi
+rm -rf "$moon_home/bin" ||
+  error "Failed to remove existing moonbit binaries"
+
+rm -rf "$moon_home/lib" ||
+  error "Failed to remove existing moonbit libraries"
+
+rm -rf "$moon_home/include" ||
+  error "Failed to remove existing moonbit includes"
+
+mkdir -p "$moon_home" ||
+  error "Failed to create directory \"$moon_home\""
 
 echo "Downloading moonbit ..."
 curl --fail --location --progress-bar --output "$moonbit_dest" "$moonbit_uri" ||
   error "Failed to download moonbit from \"$moonbit_uri\""
 
-tar xf "$moonbit_dest" --directory="$bin_dir" ||
-  error "Failed to extract moonbit to \"$bin_dir\""
+tar xf "$moonbit_dest" --directory="$moon_home" ||
+  error "Failed to extract moonbit to \"$moon_home\""
 
 rm -f "$moonbit_dest" ||
   error "Failed to remove \"$moonbit_dest\""
 
 pushd "$bin_dir" >/dev/null || error "Failed to change directory to \"$bin_dir\""
   for i in *; do
-    [ "$i" == "libtcc1.a" ] && continue
     chmod +x "$i" ||
       error "Failed to make \"$i\" executable"
   done
+  chmod +x ./internal/tcc ||
+    error "Failed to make tcc executable"
 popd >/dev/null || error "Failed to change directory to previous directory"
 
 rm -rf "$lib_dir/core" ||

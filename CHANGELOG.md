@@ -1,6 +1,25 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.9.0] - 2025-01-08
+
+### Bug Fixes
+
+- Fix basic workflow error
+- Fix setup moonbit scripts for the latest release (#34)
+
+### Miscellaneous Tasks
+
+- Add daily checking badge
+
+### Refactor
+
+- Remove common.nu (#30)
+
+### Deps
+
+- Upgrade Nu to v0.101 (#32)
+
 ## [1.8.0]
 
 ### Features

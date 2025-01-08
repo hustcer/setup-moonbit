@@ -40,7 +40,7 @@ In rare circumstances you might get rate limiting errors, if this happens you ca
 
 | Name         | Required | Description  | Type   | Default   |
 | ------------ | -------- | ------------ | ------ | --------- |
-| `version`    | no       | A valid moonbit tool chain version, such as `0.1.20241104+8ce5d2967`, `nightly`, `latest`, etc. or even `bleeding` | string | `latest`|
+| `version`    | no       | A valid moonbit tool chain version, such as `0.1.20250108+7a6b9ab0e`, `nightly`, `latest`, etc. or even `bleeding` | string | `latest`|
 | `setup-core` | no       | `true` to download and bundle Moonbit Core, `false` to ignore it | bool | `true` |
 
 ## License

@@ -46,7 +46,7 @@ jobs:
         uses: hustcer/setup-moonbit@develop
         with:
           setup-core: false
-          version: 0.1.20241223+62b9a1a85
+          version: 0.1.20250108+7a6b9ab0e
 
       - name: Check Moonbit Version
         run: |

@@ -1,8 +1,9 @@
 #!/usr/bin/env pwsh
 if ($env:MOONBIT_INSTALL_VERSION) {
-    $Version = $env:MOONBIT_INSTALL_VERSION
-} else {
-    $Version = "latest"
+  $Version = $env:MOONBIT_INSTALL_VERSION
+}
+else {
+  $Version = "latest"
 }
 
 $Version = $Version -replace '\+', '%2B'
@@ -24,27 +25,44 @@ $CLI_MOONBIT = "https://cli.moonbitlang.com"
 $MoonbitUri = "$CLI_MOONBIT/binaries/$Version/moonbit-windows-x86_64.zip"
 $CoreUri = "$CLI_MOONBIT/cores/core-$Version.zip"
 
-if (-not (Test-Path -Path $MoonBin -PathType Container)) {
-  New-Item -Path $MoonBin -ItemType Directory
-}
-
-if (-not (Test-Path -Path $MoonLib -PathType Container)) {
-  New-Item -Path $MoonLib -ItemType Directory
-}
 
 try {
+  if (Test-Path -Path $MoonHome -PathType Container) {
+    if (Test-Path -Path "$MoonHome\bin" -PathType Container) {
+      Remove-Item -Force -Recurse "$MoonHome\bin"
+    }
+    if (Test-Path -Path "$MoonHome\lib" -PathType Container) {
+      Remove-Item -Force -Recurse "$MoonHome\lib"
+    }
+    if (Test-Path -Path "$MoonHome\include" -PathType Container) {
+      Remove-Item -Force -Recurse "$MoonHome\include"
+    }
+  } else {
+    New-Item -Path $MoonHome -ItemType Directory
+  }
   Write-Output "Downloading moonbit ..."
-  Invoke-WebRequest -Uri $MoonbitUri -OutFile $MoonHome\moonbit.zip
-  Expand-Archive $MoonHome\moonbit.zip -DestinationPath $MoonBin -Force
-  Remove-Item -Force $MoonHome\moonbit.zip
+  Invoke-WebRequest -Uri $MoonbitUri -OutFile "${HOME}\moonbit.zip"
+  Expand-Archive "${HOME}\moonbit.zip" -DestinationPath $MoonHome -Force
+  Remove-Item -Force "${HOME}\moonbit.zip"
 
   Write-Output "Downloading core ..."
-  Invoke-WebRequest -Uri $CoreUri -OutFile $MoonHome\core.zip
   if (Test-Path -Path $MoonLib\core) {
     Remove-Item -Force -Recurse $MoonLib\core
   }
-  Expand-Archive $MoonHome\core.zip -DestinationPath $MoonLib -Force
-  Remove-Item -Force $MoonHome\core.zip
+  if ($Version -eq "bleeding") {
+    # Clone core repository for bleeding version
+    git clone --depth 1 https://github.com/moonbitlang/core.git "$MoonLib\core"
+    if ($LASTEXITCODE -ne 0) {
+        Write-Output "Install Failed:"
+        Write-Output "Failed to clone core from github"
+        return 1
+    }
+  } else {
+    # Download regular release version
+    Invoke-WebRequest -Uri $CoreUri -OutFile $MoonHome\core.zip
+    Expand-Archive $MoonHome\core.zip -DestinationPath $MoonLib -Force
+    Remove-Item -Force $MoonHome\core.zip
+  }
 
   Write-Output "Bundling core ..."
   Push-Location $MoonLib\core
@@ -64,7 +82,8 @@ catch {
 }
 
 if ($env:Path -split ';' -notcontains $MoonBin) {
-  [System.Environment]::SetEnvironmentVariable("PATH", "$MoonBin;$env:PATH", [System.EnvironmentVariableTarget]::User)
+  $currentPath = [System.Environment]::GetEnvironmentVariable("PATH", [System.EnvironmentVariableTarget]::User)
+  [System.Environment]::SetEnvironmentVariable("PATH", "$MoonBin;$currentPath", [System.EnvironmentVariableTarget]::User)
 
   Write-Output "Added ~/.moon/bin to the PATH."
   Write-Output "Please restart your terminal to use moonbit."

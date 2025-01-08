@@ -41,3 +41,14 @@ export def 'make-release' [
   git checkout $releaseVer; git tag $majorTag
   git push origin $majorTag $releaseVer --force
 }
+
+# Check if a git repo has the specified ref: could be a branch or tag, etc.
+export def has-ref [
+  ref: string   # The git ref to check
+] {
+  let checkRepo = (do -i { git rev-parse --is-inside-work-tree } | complete)
+  if not ($checkRepo.stdout =~ 'true') { return false }
+  # Brackets were required here, or error will occur
+  let parse = (do -i { git rev-parse --verify -q $ref } | complete)
+  if ($parse.stdout | is-empty) { false } else { true }
+}

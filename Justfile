@@ -40,9 +40,7 @@ default:
 
 # Release a new version for `setup-moonbit`
 release *OPTIONS:
-  @overlay use {{ join(SETUP_MOONBIT_PATH, 'nu', 'common.nu') }}; \
-    overlay use {{ join(SETUP_MOONBIT_PATH, 'nu', 'release.nu') }}; \
-    git-check --check-repo=1 {{SETUP_MOONBIT_PATH}}; \
+  @overlay use {{ join(SETUP_MOONBIT_PATH, 'nu', 'release.nu') }}; \
     make-release {{OPTIONS}}
 
 # Fetch official install scripts

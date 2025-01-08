@@ -53,13 +53,14 @@ export def 'setup moonbit' [
   version: string = 'latest',   # The version of moonbit toolchain to setup, and `latest` by default
   --setup-core(-c),             # Setup moonbit core
 ] {
+  let MOONBIT_HOME = [$nu.home-path .moon] | path join
   let MOONBIT_BIN_DIR = [$nu.home-path .moon bin] | path join
   let MOONBIT_LIB_DIR = [$nu.home-path .moon lib] | path join
   let coreDir = $'($MOONBIT_LIB_DIR)/core'
   if not ($MOONBIT_BIN_DIR | path exists) { mkdir $MOONBIT_BIN_DIR }
   if not ($MOONBIT_LIB_DIR | path exists) { mkdir $MOONBIT_LIB_DIR }
 
-  cd $MOONBIT_BIN_DIR
+  cd $MOONBIT_HOME
   let OS_INFO = $'($nu.os-info.name)_($nu.os-info.arch)'
   let archive = $ARCH_TARGET_MAP | get -i $OS_INFO
   if ($archive | is-empty) { print $'Unsupported Platform: ($OS_INFO)'; exit 2 }
@@ -68,11 +69,11 @@ export def 'setup moonbit' [
 
   if (windows?) {
     fetch-release $version $'moonbit-($archive).zip'
-    unzip -q $'moonbit-($archive).zip' -d $MOONBIT_BIN_DIR
+    unzip -q $'moonbit-($archive).zip' -d $MOONBIT_HOME
     rm moonbit*.zip
   } else {
     fetch-release $version $'moonbit-($archive).tar.gz'
-    tar xf $'moonbit-($archive).tar.gz' --directory $MOONBIT_BIN_DIR
+    tar xf $'moonbit-($archive).tar.gz' --directory $MOONBIT_HOME
     const IGNORE = [libtcc1.a]
     ls $MOONBIT_BIN_DIR
       | get name

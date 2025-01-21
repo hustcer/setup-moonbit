@@ -70,7 +70,7 @@ export def 'setup moonbit' [
 
   if (windows?) {
     fetch-release $version $'moonbit-($archive).zip'
-    unzip -q $'moonbit-($archive).zip' -d $MOONBIT_HOME
+    unzip -qo $'moonbit-($archive).zip' -d $MOONBIT_HOME
     rm moonbit*.zip
   } else {
     fetch-release $version $'moonbit-($archive).tar.gz'
@@ -110,7 +110,7 @@ export def 'setup moonbit' [
     fetch-core $version
 
     if (windows?) {
-      unzip -q core*.zip -d $MOONBIT_LIB_DIR; rm core*.zip
+      unzip -qo core*.zip -d $MOONBIT_LIB_DIR; rm core*.zip
     } else {
       tar xf core*.tar.gz --directory $MOONBIT_LIB_DIR; rm core*.tar.gz
     }

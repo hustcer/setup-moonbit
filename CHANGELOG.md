@@ -1,6 +1,19 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.10] - 2025-01-29
+
+**Celebrate Chinese New Year with our festive update!** 🐉✨
+
+### Bug Fixes
+
+- Unzip zip ball and override existing files without prompting on Windows (#40)
+- Create one and only one failed alert issue for failed jobs in daily checking (#48)
+
+### Features
+
+- Support setting moon home by `MOONBIT_HOME` env var (#38)
+
 ## [1.9.0] - 2025-01-08
 
 ### Bug Fixes

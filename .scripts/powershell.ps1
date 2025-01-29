@@ -27,21 +27,20 @@ $CoreUri = "$CLI_MOONBIT/cores/core-$Version.zip"
 
 
 try {
-  if (Test-Path -Path $MoonHome -PathType Container) {
-    if (Test-Path -Path "$MoonHome\bin" -PathType Container) {
-      Remove-Item -Force -Recurse "$MoonHome\bin"
-    }
-    if (Test-Path -Path "$MoonHome\lib" -PathType Container) {
-      Remove-Item -Force -Recurse "$MoonHome\lib"
-    }
-    if (Test-Path -Path "$MoonHome\include" -PathType Container) {
-      Remove-Item -Force -Recurse "$MoonHome\include"
-    }
-  } else {
+  if (-not (Test-Path -Path $MoonHome -PathType Container)) {
     New-Item -Path $MoonHome -ItemType Directory
   }
   Write-Output "Downloading moonbit ..."
   Invoke-WebRequest -Uri $MoonbitUri -OutFile "${HOME}\moonbit.zip"
+  if (Test-Path -Path "$MoonHome\bin" -PathType Container) {
+    Remove-Item -Force -Recurse "$MoonHome\bin"
+  }
+  if (Test-Path -Path "$MoonHome\lib" -PathType Container) {
+    Remove-Item -Force -Recurse "$MoonHome\lib"
+  }
+  if (Test-Path -Path "$MoonHome\include" -PathType Container) {
+    Remove-Item -Force -Recurse "$MoonHome\include"
+  }
   Expand-Archive "${HOME}\moonbit.zip" -DestinationPath $MoonHome -Force
   Remove-Item -Force "${HOME}\moonbit.zip"
 

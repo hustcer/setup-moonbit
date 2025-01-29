@@ -118,6 +118,13 @@ if [[ -z $moon_home ]]; then
   error "MOON_HOME is not set"
 fi
 
+mkdir -p "$moon_home" ||
+  error "Failed to create directory \"$moon_home\""
+
+echo "Downloading moonbit ..."
+curl --fail --location --progress-bar --output "$moonbit_dest" "$moonbit_uri" ||
+  error "Failed to download moonbit from \"$moonbit_uri\""
+
 rm -rf "$moon_home/bin" ||
   error "Failed to remove existing moonbit binaries"
 
@@ -126,13 +133,6 @@ rm -rf "$moon_home/lib" ||
 
 rm -rf "$moon_home/include" ||
   error "Failed to remove existing moonbit includes"
-
-mkdir -p "$moon_home" ||
-  error "Failed to create directory \"$moon_home\""
-
-echo "Downloading moonbit ..."
-curl --fail --location --progress-bar --output "$moonbit_dest" "$moonbit_uri" ||
-  error "Failed to download moonbit from \"$moonbit_uri\""
 
 tar xf "$moonbit_dest" --directory="$moon_home" ||
   error "Failed to extract moonbit to \"$moon_home\""

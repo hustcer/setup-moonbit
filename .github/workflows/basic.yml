@@ -3,7 +3,7 @@
 # REF:
 #   - https://github.com/marketplace/actions/checkout
 
-name: Setup-Moonbit@Dev
+name: Setup-Moonbit@Dev Basic
 on:
   push:
     branches:
@@ -45,7 +45,7 @@ jobs:
       - name: Setup Moonbit with Version
         uses: hustcer/setup-moonbit@develop
         with:
-          setup-core: false
+          setup-core: true
           version: 0.1.20250108+7a6b9ab0e
 
       - name: Check Moonbit Version

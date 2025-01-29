@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [windows-latest, ubuntu-latest, ubuntu-22.04-arm, macos-latest]
     runs-on: ${{ matrix.os }}
     name: Setup MoonBit@${{ matrix.os }}
     steps:

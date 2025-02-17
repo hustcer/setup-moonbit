@@ -1,6 +1,21 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.11.0] - 2025-02-17
+
+### Features
+
+- Add DeepSeek Code review support by `hustcer/deepseek-review`
+- Add support for specifying Moonbit Core version by `core-version` input (#55)
+
+### Miscellaneous Tasks
+
+- Update README (#53)
+
+### Deps
+
+- Upgrade Nushell to v0.102 (#51)
+
 ## [1.10] - 2025-01-29
 
 **Celebrate Chinese New Year with our festive update!** 🐉✨

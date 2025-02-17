@@ -50,9 +50,9 @@ def fetch-core [ version: string ] {
 
 # Download moonbit binary files to local
 export def 'setup moonbit' [
-  version: string = 'latest',   # The version of moonbit toolchain to setup, and `latest` by default
-  --setup-core(-c),             # Setup moonbit core
-  --core-version(-V),           # The version of moonbit core to setup, `latest` by default
+  version: string = 'latest',             # The version of moonbit toolchain to setup, and `latest` by default
+  --setup-core(-c),                       # Setup moonbit core
+  --core-version(-V): string = 'latest',  # The version of moonbit core to setup, `latest` by default
 ] {
   let MOONBIT_HOME = $env.MOONBIT_HOME? | default ([$nu.home-path .moon] | path join)
   let MOONBIT_BIN_DIR = [$MOONBIT_HOME bin] | path join

@@ -52,6 +52,7 @@ def fetch-core [ version: string ] {
 export def 'setup moonbit' [
   version: string = 'latest',   # The version of moonbit toolchain to setup, and `latest` by default
   --setup-core(-c),             # Setup moonbit core
+  --core-version(-V),           # The version of moonbit core to setup, `latest` by default
 ] {
   let MOONBIT_HOME = $env.MOONBIT_HOME? | default ([$nu.home-path .moon] | path join)
   let MOONBIT_BIN_DIR = [$MOONBIT_HOME bin] | path join
@@ -98,16 +99,16 @@ export def 'setup moonbit' [
   }
 
   if $setup_core {
-    print $'(char nl)Setup moonbit core of version: (ansi g)($version)(ansi reset)'; hr-line
+    print $'(char nl)Setup moonbit core of version: (ansi g)($core_version)(ansi reset)'; hr-line
     cd $MOONBIT_LIB_DIR; rm -rf ./core/*
-    if $version == 'bleeding' {
+    if $core_version == 'bleeding' {
       if ($coreDir | path exists) { rm -rf $coreDir }
       git clone --depth 1 https://github.com/moonbitlang/core.git $coreDir
       bundle-core $coreDir
       return
     }
 
-    fetch-core $version
+    fetch-core $core_version
 
     if (windows?) {
       unzip -qo core*.zip -d $MOONBIT_LIB_DIR; rm core*.zip

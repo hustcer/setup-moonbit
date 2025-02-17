@@ -19,4 +19,6 @@ words:
 - justfile
 - lefthook
 - linewise
+- deepseek
+- Infinigence
 ignorePaths:

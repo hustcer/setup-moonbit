@@ -118,9 +118,9 @@ export def 'setup moonbit' [
     fetch-core $core_version
 
     if (windows?) {
-      unzip -qo core-($core_version).zip -d $MOONBIT_LIB_DIR; rm core-($core_version).zip
+      unzip -qo $'core-($core_version).zip' -d $MOONBIT_LIB_DIR; rm $'core-($core_version).zip'
     } else {
-      tar xf core-($core_version).tar.gz --directory $MOONBIT_LIB_DIR; rm core-($core_version).tar.gz
+      tar xf $'core-($core_version).tar.gz' --directory $MOONBIT_LIB_DIR; rm $'core-($core_version).tar.gz'
     }
     bundle-core $coreDir
   }

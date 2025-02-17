@@ -2,6 +2,7 @@
 #   - Setup Moonbit with GitHub Actions
 # REF:
 #   - https://github.com/marketplace/actions/checkout
+#   - https://github.com/chawyehsu/moonbit-binaries/releases
 
 name: Setup-Moonbit@Dev
 on:
@@ -46,7 +47,7 @@ jobs:
         uses: hustcer/setup-moonbit@develop
         with:
           setup-core: false
-          version: 0.1.20250213+44ecf4dd9
+          version: 0.1.20250210+7be093d1f
 
       - name: Check Moonbit Version
         run: |

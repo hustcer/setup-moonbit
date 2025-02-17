@@ -20,7 +20,7 @@ steps:
 
   - name: Check Moonbit Version
     run: |
-        moon version --all
+      moon version --all
 ```
 
 或者也可以参考下本仓库的 [test.yaml](https://github.com/hustcer/setup-moonbit/blob/main/.github/workflows/test.yml) 例子。
@@ -35,13 +35,13 @@ steps:
 
 ### 输入
 
-| 参数名  | 必填    | 描述    | 类型   | 默认值   |
-| ---------------- | -------- | --- | ------ | --------- |
-| `version` | 否    | 合法的 Moonbit 工具链版本，比如: `0.1.20250108+7a6b9ab0e`, `nightly`, `latest` 或者 `bleeding` |  string | `latest` |
-| `setup-core` | 否 | 设置为 `true` 则下载并打包 Moonbit Core, `false` 则忽略 | bool | `true` |
+| 参数名       | 类型     | 描述                                                                                                                  |
+| ------------ | -------- | --------------------------------------------------------------------------------------------------------------------- |
+| `version`    | `string` | 可选，合法的 Moonbit 工具链版本，比如: `0.1.20250210+7be093d1f`, `nightly`, `latest` 或者 `bleeding`，默认为 `latest` |
+| `setup-core` | `bool`   | 设置为 `true` 则下载并打包 Moonbit Core, `false` 则忽略，默认为 `true`                                                |
 
 ## 许可
 
 Licensed under:
 
-* MIT license ([LICENSE](LICENSE) or http://opensource.org/licenses/MIT)
+- MIT license ([LICENSE](LICENSE) or http://opensource.org/licenses/MIT)

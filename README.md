@@ -23,7 +23,7 @@ steps:
 
   - name: Check Moonbit Version
     run: |
-        moon version --all
+      moon version --all
 ```
 
 Or, check the [test.yaml](https://github.com/hustcer/setup-moonbit/blob/main/.github/workflows/test.yml) example.
@@ -38,13 +38,13 @@ In rare circumstances you might get rate limiting errors, if this happens you ca
 
 ### Inputs
 
-| Name         | Required | Description  | Type   | Default   |
-| ------------ | -------- | ------------ | ------ | --------- |
-| `version`    | no       | A valid moonbit tool chain version, such as `0.1.20250108+7a6b9ab0e`, `nightly`, `latest`, etc. or even `bleeding` | string | `latest`|
-| `setup-core` | no       | `true` to download and bundle Moonbit Core, `false` to ignore it | bool | `true` |
+| Name         | Type     | Description                                                                                                                                       |
+| ------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `version`    | `string` | Optional, A valid moonbit tool chain version, such as `0.1.20250210+7be093d1f`, `nightly`, `latest`, etc. or even `bleeding`, default to `latest` |
+| `setup-core` | `bool`   | Optional, Set to `true` to download and bundle Moonbit Core, `false` to ignore it, default to `true`                                              |
 
 ## License
 
 Licensed under:
 
-* MIT license ([LICENSE](LICENSE) or http://opensource.org/licenses/MIT)
+- MIT license ([LICENSE](LICENSE) or http://opensource.org/licenses/MIT)

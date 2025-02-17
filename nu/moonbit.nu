@@ -15,6 +15,7 @@
 
 const CLI_HOST = 'https://cli.moonbitlang.com'
 
+const VALID_VERSION_TAG = [latest, bleeding, nightly]
 const ARCH_TARGET_MAP = {
   linux_x86_64: 'linux-x86_64',
   macos_x86_64: 'darwin-x86_64',
@@ -39,6 +40,9 @@ def fetch-release [ version: string, archive: string ] {
 
 # Download moonbit core from CLI_HOST with aria2c or `http get`
 def fetch-core [ version: string ] {
+  if ($version not-in $VALID_VERSION_TAG) and not (is-semver $version) {
+    print $'(ansi r)Invalid version: ($version)(ansi reset)'; exit 2
+  }
   let version = $version | str replace + %2B
   let suffix = if (windows?) { $'($version).zip' } else { $'($version).tar.gz' }
   if (is-installed aria2c) {
@@ -50,9 +54,13 @@ def fetch-core [ version: string ] {
 
 # Download moonbit binary files to local
 export def 'setup moonbit' [
-  version: string = 'latest',   # The version of moonbit toolchain to setup, and `latest` by default
-  --setup-core(-c),             # Setup moonbit core
+  version: string = 'latest',             # The version of moonbit toolchain to setup, and `latest` by default
+  --setup-core(-c),                       # Setup moonbit core
+  --core-version(-V): string = 'latest',  # The version of moonbit core to setup, `latest` by default
 ] {
+  if ($version not-in $VALID_VERSION_TAG) and not (is-semver $version) {
+    print $'(ansi r)Invalid version: ($version)(ansi reset)'; exit 2
+  }
   let MOONBIT_HOME = $env.MOONBIT_HOME? | default ([$nu.home-path .moon] | path join)
   let MOONBIT_BIN_DIR = [$MOONBIT_HOME bin] | path join
   let MOONBIT_LIB_DIR = [$MOONBIT_HOME lib] | path join
@@ -98,21 +106,21 @@ export def 'setup moonbit' [
   }
 
   if $setup_core {
-    print $'(char nl)Setup moonbit core of version: (ansi g)($version)(ansi reset)'; hr-line
+    print $'(char nl)Setup moonbit core of version: (ansi g)($core_version)(ansi reset)'; hr-line
     cd $MOONBIT_LIB_DIR; rm -rf ./core/*
-    if $version == 'bleeding' {
+    if $core_version == 'bleeding' {
       if ($coreDir | path exists) { rm -rf $coreDir }
       git clone --depth 1 https://github.com/moonbitlang/core.git $coreDir
       bundle-core $coreDir
       return
     }
 
-    fetch-core $version
+    fetch-core $core_version
 
     if (windows?) {
-      unzip -qo core*.zip -d $MOONBIT_LIB_DIR; rm core*.zip
+      unzip -qo $'core-($core_version).zip' -d $MOONBIT_LIB_DIR; rm $'core-($core_version).zip'
     } else {
-      tar xf core*.tar.gz --directory $MOONBIT_LIB_DIR; rm core*.tar.gz
+      tar xf $'core-($core_version).tar.gz' --directory $MOONBIT_LIB_DIR; rm $'core-($core_version).tar.gz'
     }
     bundle-core $coreDir
   }
@@ -138,6 +146,19 @@ def bundle-core [coreDir: string] {
 export def windows? [] {
   # Windows / Darwin / Linux
   (sys host | get name) == 'Windows'
+}
+
+# A custom command to check if a string is a valid SemVer version
+def is-semver [version?: string] {
+  let version = if ($version | is-empty) { $in } else { $version }
+  if ($version | is-empty) { return false }
+  # Use regex pattern to match the SemVer version string
+  # The `v` prefix is not supported, add `v?` at the beginning of the regex if needed
+  # ^v?(0|[1-9]\d*)\.(0|[1-9]\d*)... Keep the reset of the pattern the same
+  let semver_pattern = '^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
+  # Check if the version string matches the SemVer pattern
+  if $version =~ $semver_pattern { true } else { false }
+  # $version | str replace --regex $semver_pattern 'match' | $in == 'match'
 }
 
 # Check if some command available in current shell

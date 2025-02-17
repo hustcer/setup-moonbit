@@ -23,6 +23,10 @@ inputs:
     required: false
     default: true
     description: 'Set to `true` if you want to setup moonbit core.'
+  core-version:
+    required: false
+    default: 'latest'
+    description: 'The moonbit core version to setup.'
 
 runs:
   using: 'composite'
@@ -37,6 +41,7 @@ runs:
       run: |
         use ${{ github.action_path }}/nu/moonbit.nu *
         let version = '${{inputs.version}}'
-        let setupCore = '${{inputs.setup-core}}' | into bool
-        setup moonbit $version --setup-core=$setupCore
+        let setup_core = '${{inputs.setup-core}}' | into bool
+        let core_version = '${{inputs.core-version}}'
+        setup moonbit $version --setup-core=$setup_core --core-version=$core_version
 

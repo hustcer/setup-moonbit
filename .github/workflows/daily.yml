@@ -5,6 +5,7 @@
 
 name: Setup-Moonbit@Daily Checking
 on:
+  workflow_dispatch:
   push:
     branches:
       - main

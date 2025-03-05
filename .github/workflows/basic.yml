@@ -6,6 +6,7 @@
 
 name: Setup-Moonbit@Dev
 on:
+  workflow_dispatch:
   push:
     branches:
       - develop
@@ -47,7 +48,7 @@ jobs:
         uses: hustcer/setup-moonbit@develop
         with:
           setup-core: false
-          version: 0.1.20250210+7be093d1f
+          version: 0.1.20250304+fdfcb3f1f
 
       - name: Check Moonbit Version
         run: |

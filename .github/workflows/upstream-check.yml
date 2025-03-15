@@ -56,6 +56,3 @@ jobs:
             print $'Error creating PR: '
             $err | table -e | print
           }
-
-
-

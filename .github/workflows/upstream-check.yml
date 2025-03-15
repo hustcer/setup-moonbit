@@ -14,6 +14,12 @@ on:
   schedule:
     - cron: '15 0 * * *' # run at 00:15 AM UTC
 
+permissions:
+  # fix: pull request create failed: GraphQL: GitHub Actions is not permitted to create or approve pull requests (createPullRequest)
+  pull-requests: write
+  # Add contents:write permission to allow pushing branches
+  contents: write
+
 jobs:
   upstream-check:
     runs-on: ubuntu-latest
@@ -22,6 +28,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           ref: feature/latest
 
       - name: Setup Nushell
@@ -32,7 +39,7 @@ jobs:
       - name: Create PR if Upstream was Updated
         shell: nu {0}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           if not ('.scripts' | path exists) { mkdir .scripts }
           glob .scripts/{unix,pow}* | rm ...$in
@@ -41,10 +48,18 @@ jobs:
           http get https://cli.moonbitlang.com/install/powershell.ps1 | save -rf powershell.ps1
           let statusCheck = (git status --porcelain)
           if ($statusCheck | is-empty) { print $'(ansi g)No changes detected. Bye...(ansi reset)'; return }
+          # We can't push if no user name and email are configured
+          git config user.name 'hustcer'
+          git config user.email 'hustcer@outlook.com'
+
+          # Configure git to use the token for authentication
+          git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/hustcer/setup-moonbit.git
+          git fetch origin -p
+          git pull origin feature/latest
           git add .
           git checkout -b feature/upstream-update
           git commit -am 'Update upstream scripts'
-          git push origin feature/upstream-update
+          git push origin feature/upstream-update -f
           try {
             (
               gh pr create --base feature/latest

@@ -14,12 +14,6 @@ on:
   schedule:
     - cron: '15 0 * * *' # run at 00:15 AM UTC
 
-permissions:
-  # fix: pull request create failed: GraphQL: GitHub Actions is not permitted to create or approve pull requests (createPullRequest)
-  pull-requests: write
-  # Add contents:write permission to allow pushing branches
-  contents: write
-
 jobs:
   upstream-check:
     runs-on: ubuntu-latest
@@ -51,10 +45,6 @@ jobs:
           # We can't push if no user name and email are configured
           git config user.name 'hustcer'
           git config user.email 'hustcer@outlook.com'
-
-          # Configure git to use the token for authentication
-          git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/hustcer/setup-moonbit.git
-          git fetch origin -p
           git pull origin feature/latest
           git add .
           git checkout -b feature/upstream-update

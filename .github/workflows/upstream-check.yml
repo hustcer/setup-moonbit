@@ -1,5 +1,5 @@
 # Description:
-#   - Setup Moonbit with GitHub Actions
+#   - Check upstream scripts for updates and create a PR if there are any.
 # REF:
 #   - https://github.com/marketplace/actions/checkout
 
@@ -35,21 +35,27 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if not ('.scripts' | path exists) { mkdir .scripts }
-          glob .scripts/{unix,pow}* | each { rm $in }
+          glob .scripts/{unix,pow}* | rm ...$in
           cd .scripts
-          aria2c https://cli.moonbitlang.com/install/unix.sh
-          aria2c https://cli.moonbitlang.com/install/powershell.ps1
+          http get https://cli.moonbitlang.com/install/unix.sh | save -rf unix.sh
+          http get https://cli.moonbitlang.com/install/powershell.ps1 | save -rf powershell.ps1
           let statusCheck = (git status --porcelain)
           if ($statusCheck | is-empty) { printf "No changes detected. Bye..."; return }
           git add .
           git checkout -b feature/upstream-update
           git commit -am 'Update upstream scripts'
           git push origin feature/upstream-update
-          (
-            gh pr create --base feature/latest
-              --head feature/upstream-update
-              --title 'Update upstream scripts'
-              --body 'This PR updates the upstream scripts to the latest revision.'
-          )
+          try {
+            (
+              gh pr create --base feature/latest
+                --head feature/upstream-update
+                --title 'Update upstream scripts'
+                --body 'This PR updates the upstream scripts to the latest revision.'
+            )
+          } catch {|err|
+            print $'Error creating PR: '
+            $err | table -e | print
+          }
+
 
 

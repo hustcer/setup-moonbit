@@ -111,7 +111,7 @@ export def 'setup moonbit' [
     if $core_version == 'bleeding' {
       if ($coreDir | path exists) { rm -rf $coreDir }
       try { git clone -b llvm_backend --depth 1 https://github.com/moonbitlang/core.git $coreDir } catch {
-        print $'(ansi red)Failed to clone bleeding core from GitHub(ansi reset)'
+        print $'(ansi r)Failed to clone bleeding core from GitHub(ansi reset)'
       }
       bundle-core $coreDir $version
       return
@@ -135,18 +135,19 @@ def bundle-core [coreDir: string, version: string] {
   try {
     ^$moonBin bundle --all --source-dir $coreDir
   } catch {
-    print $'(ansi red)Failed to bundle core(ansi reset)'
+    print $'(ansi r)Failed to bundle core(ansi reset)'
   }
   try {
     ^$moonBin bundle --target wasm-gc --source-dir $coreDir --quiet
   } catch {
-    print $'(ansi red)Failed to bundle core to wasm-gc(ansi reset)'
+    print $'(ansi r)Failed to bundle core to wasm-gc(ansi reset)'
   }
   if $version != 'bleeding' or (windows?) { return }
+  print $'(ansi g)Bundle core for llvm backend(ansi reset)'
   try {
     ^$moonBin bundle --target llvm --source-dir $coreDir
   } catch {
-    print $'(ansi red)Failed to bundle core for llvm backend(ansi reset)'
+    print $'(ansi r)Failed to bundle core for llvm backend(ansi reset)'
   }
 }
 

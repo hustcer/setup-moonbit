@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.12] - 2025-03-15
+
+### Features
+
+- Add bundle core for llvm backend support with bleeding version (#58)
+
 ## [1.11.0] - 2025-02-17
 
 ### Features

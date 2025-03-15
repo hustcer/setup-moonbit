@@ -38,6 +38,10 @@ _query_plugin := if os_family() == 'windows' { 'nu_plugin_query.exe' } else { 'n
 default:
   @just --list --list-prefix "··· "
 
+# List all available releases
+ls:
+  @print -n (char nl);gh release list --repo chawyehsu/moonbit-binaries --limit 30;print -n (char nl)
+
 # Release a new version for `setup-moonbit`
 release *OPTIONS:
   @overlay use {{ join(SETUP_MOONBIT_PATH, 'nu', 'release.nu') }}; \

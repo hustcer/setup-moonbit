@@ -49,7 +49,8 @@ release *OPTIONS:
 
 # Fetch official install scripts
 fetch:
-  @if not ('.scripts' | path exists) { mkdir .scripts }; rm .scripts/*; cd .scripts; \
+  @if not ('.scripts' | path exists) { mkdir .scripts }; \
+    glob .scripts/{unix,pow}* | each { rm $in }; cd .scripts; \
     aria2c https://cli.moonbitlang.com/install/unix.sh; \
     aria2c https://cli.moonbitlang.com/install/powershell.ps1
 

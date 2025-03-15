@@ -40,7 +40,7 @@ jobs:
           http get https://cli.moonbitlang.com/install/unix.sh | save -rf unix.sh
           http get https://cli.moonbitlang.com/install/powershell.ps1 | save -rf powershell.ps1
           let statusCheck = (git status --porcelain)
-          if ($statusCheck | is-empty) { printf "No changes detected. Bye..."; return }
+          if ($statusCheck | is-empty) { print $'(ansi g)No changes detected. Bye...(ansi reset)'; return }
           git add .
           git checkout -b feature/upstream-update
           git commit -am 'Update upstream scripts'

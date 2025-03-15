@@ -1,6 +1,8 @@
 # taken from bun.sh/install
 Color_Off=''
 
+
+# Detect changes here
 # Regular Colors
 Red=''
 Green=''

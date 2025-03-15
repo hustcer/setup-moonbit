@@ -110,8 +110,10 @@ export def 'setup moonbit' [
     cd $MOONBIT_LIB_DIR; rm -rf ./core/*
     if $core_version == 'bleeding' {
       if ($coreDir | path exists) { rm -rf $coreDir }
-      git clone --depth 1 https://github.com/moonbitlang/core.git $coreDir
-      bundle-core $coreDir
+      try { git clone -b llvm_backend --depth 1 https://github.com/moonbitlang/core.git $coreDir } catch {
+        print $'(ansi red)Failed to clone bleeding core from GitHub(ansi reset)'
+      }
+      bundle-core $coreDir $version
       return
     }
 
@@ -122,12 +124,12 @@ export def 'setup moonbit' [
     } else {
       tar xf $'core-($core_version).tar.gz' --directory $MOONBIT_LIB_DIR; rm $'core-($core_version).tar.gz'
     }
-    bundle-core $coreDir
+    bundle-core $coreDir $version
   }
 }
 
 # Bundle moonbit core
-def bundle-core [coreDir: string] {
+def bundle-core [coreDir: string, version: string] {
   let moonBin = if (windows?) { 'moon.exe' } else { 'moon' }
   print $'(char nl)Bundle moonbit core(ansi reset)'; hr-line
   try {
@@ -139,6 +141,12 @@ def bundle-core [coreDir: string] {
     ^$moonBin bundle --target wasm-gc --source-dir $coreDir --quiet
   } catch {
     print $'(ansi red)Failed to bundle core to wasm-gc(ansi reset)'
+  }
+  if $version != 'bleeding' or (windows?) { return }
+  try {
+    ^$moonBin bundle --target llvm --source-dir $coreDir
+  } catch {
+    print $'(ansi red)Failed to bundle core for llvm backend(ansi reset)'
   }
 }
 

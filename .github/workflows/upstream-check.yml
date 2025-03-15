@@ -1,0 +1,55 @@
+# Description:
+#   - Setup Moonbit with GitHub Actions
+# REF:
+#   - https://github.com/marketplace/actions/checkout
+
+name: Upstream Daily Checking
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - develop
+  # This schedule will run only from the default branch
+  schedule:
+    - cron: '15 0 * * *' # run at 00:15 AM UTC
+
+jobs:
+  upstream-check:
+    runs-on: ubuntu-latest
+    name: Upstream Check
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: feature/latest
+
+      - name: Setup Nushell
+        uses: hustcer/setup-nu@v3
+        with:
+          check-latest: true
+
+      - name: Create PR if Upstream was Updated
+        shell: nu {0}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if not ('.scripts' | path exists) { mkdir .scripts }
+          glob .scripts/{unix,pow}* | each { rm $in }
+          cd .scripts
+          aria2c https://cli.moonbitlang.com/install/unix.sh
+          aria2c https://cli.moonbitlang.com/install/powershell.ps1
+          let statusCheck = (git status --porcelain)
+          if ($statusCheck | is-empty) { printf "No changes detected. Bye..."; return }
+          git add .
+          git checkout -b feature/upstream-update
+          git commit -am 'Update upstream scripts'
+          git push origin feature/upstream-update
+          (
+            gh pr create --base feature/latest
+              --head feature/upstream-update
+              --title 'Update upstream scripts'
+              --body 'This PR updates the upstream scripts to the latest revision.'
+          )
+
+

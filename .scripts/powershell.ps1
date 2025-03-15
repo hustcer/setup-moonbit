@@ -6,8 +6,6 @@ else {
   $Version = "latest"
 }
 
-
-
 $Version = $Version -replace '\+', '%2B'
 
 if ($env:PROCESSOR_ARCHITECTURE -ne "AMD64") {

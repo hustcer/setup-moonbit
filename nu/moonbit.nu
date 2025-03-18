@@ -9,6 +9,8 @@
 #   [√] Setup Moonbit Core support
 #   [√] Setup moonbit core of `bleeding` version support
 # Description: Scripts for setting up MoonBit environment
+# REF:
+#   - https://cli.moonbitlang.com/version.json
 # Usage:
 #    setup moonbit
 #    setup moonbit 0.1.20240910+3af041b9a

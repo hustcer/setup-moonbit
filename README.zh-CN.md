@@ -37,9 +37,9 @@ steps:
 
 | 参数名       | 类型     | 描述                                                                                                                  |
 | ------------ | -------- | --------------------------------------------------------------------------------------------------------------------- |
-| `version`    | `string` | 可选，合法的 Moonbit 工具链版本，比如: `0.1.20250210+7be093d1f`, `nightly`, `latest` 或者 `bleeding`，默认为 `latest` |
+| `version`    | `string` | 可选，合法的 Moonbit 工具链版本，比如: `0.1.20250317+3e0c28331`, `nightly`, `latest` 或者 `bleeding`，默认为 `latest` |
 | `setup-core` | `bool`   | 设置为 `true` 则下载并打包 Moonbit Core, `false` 则忽略，默认为 `true`                                                |
-| `core-version` | `string` | 可选，合法的 Moonbit Core 版本，比如: `0.1.20250210+7be093d1f`, `nightly`, `latest` 或者 `bleeding`，默认为 `latest` |
+| `core-version` | `string` | 可选，合法的 Moonbit Core 版本，比如: `0.1.20250317+3e0c28331`, `nightly`, `latest` 或者 `bleeding`，默认为 `latest` |
 
 ## 许可
 

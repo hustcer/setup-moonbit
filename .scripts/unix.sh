@@ -99,6 +99,10 @@ if [[ -z $target ]]; then
   error "Unsupported platform: $(uname -ms)"
 fi
 
+if [[ -n $MOONBIT_INSTALL_DEV ]]; then
+  target="$target-dev"
+fi
+
 version=${ARGUMENTS[0]:-latest}
 version=${version//+/%2B}
 

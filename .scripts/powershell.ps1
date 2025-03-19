@@ -22,7 +22,12 @@ $MoonLib = "${MoonHome}\lib"
 
 $CLI_MOONBIT = "https://cli.moonbitlang.com"
 
-$MoonbitUri = "$CLI_MOONBIT/binaries/$Version/moonbit-windows-x86_64.zip"
+if ($env:MOONBIT_INSTALL_DEV) {
+  $MoonbitUri = "$CLI_MOONBIT/binaries/$Version/moonbit-windows-x86_64-dev.zip"
+} else {
+  $MoonbitUri = "$CLI_MOONBIT/binaries/$Version/moonbit-windows-x86_64.zip"
+}
+
 $CoreUri = "$CLI_MOONBIT/cores/core-$Version.zip"
 
 

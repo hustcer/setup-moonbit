@@ -16,7 +16,12 @@ if ($env:PROCESSOR_ARCHITECTURE -ne "AMD64") {
 
 $ErrorActionPreference = "Stop"
 
-$MoonHome = "${HOME}\.moon"
+if ($env:MOON_HOME) {
+  $MoonHome = $env:MOON_HOME
+} else {
+  $MoonHome = "${HOME}\.moon"
+}
+
 $MoonBin = "${MoonHome}\bin"
 $MoonLib = "${MoonHome}\lib"
 

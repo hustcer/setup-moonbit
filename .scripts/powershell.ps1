@@ -11,7 +11,7 @@ $Version = $Version -replace '\+', '%2B'
 if ($env:PROCESSOR_ARCHITECTURE -ne "AMD64") {
   Write-Output "Install Failed:"
   Write-Output "MoonBit for Windows is currently only available for x86 64-bit Windows.`n"
-  return 1
+  exit 1
 }
 
 $ErrorActionPreference = "Stop"
@@ -64,7 +64,7 @@ try {
     if ($LASTEXITCODE -ne 0) {
         Write-Output "Install Failed:"
         Write-Output "Failed to clone core from github"
-        return 1
+        exit 1
     }
   } else {
     # Download regular release version
@@ -87,7 +87,7 @@ try {
 catch {
   Write-Output "Install Failed:"
   Write-Output $_.Exception.Message
-  return 1
+  exit 1
 }
 
 if ($env:Path -split ';' -notcontains $MoonBin) {

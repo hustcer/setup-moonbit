@@ -5,7 +5,12 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
-- Add bundle core for llvm backend support with bleeding version (#58)
+- Add bundle core for `llvm` backend support with bleeding version (#58)
+
+### Miscellaneous Tasks
+
+- Upgrade Nushell to `0.103.0`
+- Add `upstream-check.yml` workflow to update upstream scripts automatically
 
 ## [1.11.0] - 2025-02-17
 

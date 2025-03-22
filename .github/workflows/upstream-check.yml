@@ -54,7 +54,7 @@ jobs:
             (
               gh pr create --base feature/latest
                 --head feature/upstream-update
-                --title 'Update upstream scripts'
+                --title 'CheckBot: Update upstream scripts'
                 --body 'This PR updates the upstream scripts to the latest revision.'
             )
           } catch {|err|

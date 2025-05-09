@@ -158,7 +158,7 @@ rm -rf "$lib_dir/core" ||
 
 echo "Downloading core ..."
 if [[ $version == "bleeding" ]]; then
-  git clone -b llvm_backend --depth 1 https://github.com/moonbitlang/core.git "$lib_dir/core" ||
+  git clone --depth 1 https://github.com/moonbitlang/core.git "$lib_dir/core" ||
     error "Failed to clone core from github"
 else
   curl --fail --location --progress-bar --output "$core_dest" "$core_uri" ||

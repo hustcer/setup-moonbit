@@ -112,7 +112,7 @@ export def 'setup moonbit' [
     cd $MOONBIT_LIB_DIR; rm -rf ./core/*
     if $core_version == 'bleeding' {
       if ($coreDir | path exists) { rm -rf $coreDir }
-      try { git clone -b llvm_backend --depth 1 https://github.com/moonbitlang/core.git $coreDir } catch {
+      try { git clone --depth 1 https://github.com/moonbitlang/core.git $coreDir } catch {
         print $'(ansi r)Failed to clone bleeding core from GitHub(ansi reset)'
       }
       bundle-core $coreDir $version

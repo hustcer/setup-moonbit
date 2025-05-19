@@ -17,7 +17,7 @@ branding:
 inputs:
   version:
     required: false
-    default: 'stable'
+    default: 'latest'
     description: 'The moonbit toolchain version to setup.'
   setup-core:
     required: false

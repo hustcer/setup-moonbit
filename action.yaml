@@ -25,7 +25,7 @@ inputs:
     description: 'Set to `true` if you want to setup moonbit core.'
   core-version:
     required: false
-    default: 'stable'
+    default: 'latest'
     description: 'The moonbit core version to setup.'
 
 runs:

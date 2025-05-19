@@ -51,7 +51,7 @@ jobs:
       - name: Setup Moonbit
         uses: hustcer/setup-moonbit@main
         with:
-          version: nightly
+          version: pre-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

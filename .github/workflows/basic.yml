@@ -73,3 +73,37 @@ jobs:
       - name: Check Moonbit Version
         run: |
           moon version --all
+
+  setup-moonbit-stable:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    name: Setup MoonBit Stable@${{ matrix.os }}
+    steps:
+      - name: Setup Moonbit Stable
+        uses: hustcer/setup-moonbit@develop
+        with:
+          version: stable
+
+      - name: Check Moonbit Version
+        run: |
+          moon version --all
+
+  setup-moonbit-rc:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    name: Setup MoonBit RC@${{ matrix.os }}
+    steps:
+      - name: Setup Moonbit Pre-Release
+        uses: hustcer/setup-moonbit@develop
+        with:
+          version: pre-release
+
+      - name: Check Moonbit Version
+        run: |
+          moon version --all

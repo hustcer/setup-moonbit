@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.13] - 2025-05-19
+
+### Miscellaneous Tasks
+
+- Update setup `bleeding` version (#68)
+- Update version names and rename `nightly` to `pre-release` align with the official ones (#70)
+
 ## [1.12] - 2025-03-15
 
 ### Features

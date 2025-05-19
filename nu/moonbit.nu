@@ -18,6 +18,7 @@
 const CLI_HOST = 'https://cli.moonbitlang.com'
 
 const VALID_VERSION_TAG = [latest, bleeding, nightly]
+const VALID_CORE_VERSION_TAG = [stable, bleeding, pre-release]
 const ARCH_TARGET_MAP = {
   linux_x86_64: 'linux-x86_64',
   macos_x86_64: 'darwin-x86_64',
@@ -42,7 +43,7 @@ def fetch-release [ version: string, archive: string ] {
 
 # Download moonbit core from CLI_HOST with aria2c or `http get`
 def fetch-core [ version: string ] {
-  if ($version not-in $VALID_VERSION_TAG) and not (is-semver $version) {
+  if ($version not-in $VALID_CORE_VERSION_TAG) and not (is-semver $version) {
     print $'(ansi r)Invalid version: ($version)(ansi reset)'; exit 2
   }
   let version = $version | str replace + %2B
@@ -58,7 +59,7 @@ def fetch-core [ version: string ] {
 export def 'setup moonbit' [
   version: string = 'latest',             # The version of moonbit toolchain to setup, and `latest` by default
   --setup-core(-c),                       # Setup moonbit core
-  --core-version(-V): string = 'latest',  # The version of moonbit core to setup, `latest` by default
+  --core-version(-V): string = 'stable',  # The version of moonbit core to setup, `stable` by default
 ] {
   if ($version not-in $VALID_VERSION_TAG) and not (is-semver $version) {
     print $'(ansi r)Invalid version: ($version)(ansi reset)'; exit 2

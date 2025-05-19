@@ -84,7 +84,7 @@ jobs:
           moon version --all
 
   create-failure-alert:
-    needs: [setup-latest, setup-nightly, setup-bleeding]
+    needs: [setup-latest, setup-rc, setup-bleeding]
     runs-on: ubuntu-latest
     if: ${{ failure() }}
     steps:

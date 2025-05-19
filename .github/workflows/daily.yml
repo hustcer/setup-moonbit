@@ -36,7 +36,7 @@ jobs:
         run: |
           moon version --all
 
-  setup-nightly:
+  setup-rc:
     strategy:
       fail-fast: false
       matrix:
@@ -51,7 +51,7 @@ jobs:
       - name: Setup Moonbit
         uses: hustcer/setup-moonbit@main
         with:
-          version: nightly
+          version: pre-release
           core-version: pre-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

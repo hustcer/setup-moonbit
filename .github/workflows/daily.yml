@@ -36,7 +36,7 @@ jobs:
         run: |
           moon version --all
 
-  setup-nightly:
+  setup-rc:
     strategy:
       fail-fast: false
       matrix:
@@ -51,7 +51,8 @@ jobs:
       - name: Setup Moonbit
         uses: hustcer/setup-moonbit@main
         with:
-          version: nightly
+          version: pre-release
+          core-version: pre-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -83,7 +84,7 @@ jobs:
           moon version --all
 
   create-failure-alert:
-    needs: [setup-latest, setup-nightly, setup-bleeding]
+    needs: [setup-latest, setup-rc, setup-bleeding]
     runs-on: ubuntu-latest
     if: ${{ failure() }}
     steps:

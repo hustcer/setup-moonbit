@@ -69,6 +69,7 @@ jobs:
         uses: hustcer/setup-moonbit@develop
         with:
           version: bleeding
+          core-version: bleeding
 
       - name: Check Moonbit Version
         run: |

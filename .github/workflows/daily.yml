@@ -24,9 +24,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     name: Setup Latest@${{ matrix.os }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Setup Moonbit
         uses: hustcer/setup-moonbit@v1
         env:
@@ -43,11 +40,8 @@ jobs:
         os: [windows-latest, ubuntu-latest, macos-latest]
 
     runs-on: ${{ matrix.os }}
-    name: Setup Nightly@${{ matrix.os }}
+    name: Setup Pre-Release@${{ matrix.os }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Setup Moonbit
         uses: hustcer/setup-moonbit@main
         with:
@@ -69,9 +63,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     name: Setup Bleeding@${{ matrix.os }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Setup Moonbit
         uses: hustcer/setup-moonbit@develop
         with:
@@ -83,8 +74,29 @@ jobs:
         run: |
           moon version --all
 
+  setup-nightly:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+    name: Setup Nightly@${{ matrix.os }}
+    steps:
+      - name: Setup Moonbit
+        uses: hustcer/setup-moonbit@develop
+        with:
+          version: nightly
+          core-version: nightly
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Moonbit Version
+        run: |
+          moon version --all
+
   create-failure-alert:
-    needs: [setup-latest, setup-rc, setup-bleeding]
+    needs: [setup-latest, setup-rc, setup-bleeding, setup-nightly]
     runs-on: ubuntu-latest
     if: ${{ failure() }}
     steps:

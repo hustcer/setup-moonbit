@@ -17,7 +17,7 @@
 
 const CLI_HOST = 'https://cli.moonbitlang.com'
 
-const VALID_VERSION_TAG = [latest, bleeding, pre-release]
+const VALID_VERSION_TAG = [latest, bleeding, pre-release, nightly]
 const ARCH_TARGET_MAP = {
   linux_x86_64: 'linux-x86_64',
   macos_x86_64: 'darwin-x86_64',

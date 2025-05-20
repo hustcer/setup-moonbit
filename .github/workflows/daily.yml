@@ -84,7 +84,7 @@ jobs:
     name: Setup Nightly@${{ matrix.os }}
     steps:
       - name: Setup Moonbit
-        uses: hustcer/setup-moonbit@main
+        uses: hustcer/setup-moonbit@develop
         with:
           version: nightly
           core-version: nightly

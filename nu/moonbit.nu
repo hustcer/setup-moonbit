@@ -32,11 +32,12 @@ export-env {
 # Download binary file from CLI_HOST with aria2c or `http get`
 def fetch-release [ version: string, archive: string ] {
   let version = $version | str replace + %2B
-  print $'Fetch binaries from (ansi g)($CLI_HOST)/binaries/($version)/($archive)(ansi reset)'
+  let assets = $'($CLI_HOST)/binaries/($version)/($archive)'
+  print $'Fetch binaries from (ansi g)($assets)(ansi reset)'
   if (is-installed aria2c) {
-    aria2c --allow-overwrite $'($CLI_HOST)/binaries/($version)/($archive)'
+    aria2c --allow-overwrite $assets
   } else {
-    http get $'($CLI_HOST)/binaries/($version)/($archive)' | save --progress --force $archive
+    http get $assets | save --progress --force $archive
   }
 }
 
@@ -47,10 +48,12 @@ def fetch-core [ version: string ] {
   }
   let version = $version | str replace + %2B
   let suffix = if (windows?) { $'($version).zip' } else { $'($version).tar.gz' }
+  let assets = $'($CLI_HOST)/cores/core-($suffix)'
+  print $'Fetch core assets from (ansi g)($assets)(ansi reset)'
   if (is-installed aria2c) {
-    aria2c --allow-overwrite $'($CLI_HOST)/cores/core-($suffix)'
+    aria2c --allow-overwrite $assets
   } else {
-    http get $'($CLI_HOST)/cores/core-($suffix)' | save --progress --force $'core-($suffix)'
+    http get $assets | save --progress --force $'core-($suffix)'
   }
 }
 

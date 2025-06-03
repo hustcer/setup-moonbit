@@ -6,7 +6,7 @@
 
 ## 使用
 
-NOTE：推荐使用  `hustcer/setup-moonbit@v1.12` 或者 `hustcer/setup-moonbit@v1`, `v1` 始终指向最新的 `1.xx` 版本。
+NOTE：推荐使用  `hustcer/setup-moonbit@v1.13` 或者 `hustcer/setup-moonbit@v1`, `v1` 始终指向最新的 `1.xx` 版本。
 
 ### 基础使用
 
@@ -14,9 +14,6 @@ NOTE：推荐使用  `hustcer/setup-moonbit@v1.12` 或者 `hustcer/setup-moonbit
 
 ```yaml
 steps:
-  - name: Checkout
-    uses: actions/checkout@v4
-
   - name: Setup Moonbit
     uses: hustcer/setup-moonbit@v1
 
@@ -39,9 +36,9 @@ steps:
 
 | 参数名       | 类型     | 描述                                                                                                                  |
 | ------------ | -------- | --------------------------------------------------------------------------------------------------------------------- |
-| `version`    | `string` | 可选，合法的 Moonbit 工具链版本，比如: `0.1.20250508+ae9fa770e`, `latest`, `pre-release`, 或者 `bleeding`，默认为 `latest` |
+| `version`    | `string` | 可选，合法的 Moonbit 工具链版本，比如: `0.1.20250529+8a98c8e02`, `latest`, `pre-release`, 或者 `bleeding`，默认为 `latest` |
 | `setup-core` | `bool`   | 设置为 `true` 则下载并打包 Moonbit Core, `false` 则忽略，默认为 `true`                                                |
-| `core-version` | `string` | 可选，合法的 Moonbit Core 版本，比如: `0.1.20250508+ae9fa770e`, `latest`,`pre-release` 或者 `bleeding`，默认为 `latest` |
+| `core-version` | `string` | 可选，合法的 Moonbit Core 版本，比如: `0.1.20250529+8a98c8e02`, `latest`,`pre-release` 或者 `bleeding`，默认为 `latest` |
 
 ## 许可
 

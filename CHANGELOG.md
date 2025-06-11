@@ -1,6 +1,17 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.15] - 2025-06-11
+
+### Features
+
+- Add `nightly` version support (#75)
+
+### Miscellaneous Tasks
+
+- Print core assets url while downloading (#73)
+- Upgrade `Nu` to 0.105 and pin [`hustcer/setup-nu`](https://github.com/hustcer/setup-nu) to v3.19 (#76)
+
 ## [1.13] - 2025-05-19
 
 ### Miscellaneous Tasks

@@ -91,7 +91,7 @@ export def 'setup moonbit' [
     const IGNORE = []
     ls $MOONBIT_BIN_DIR
       | get name
-      | filter { ($in | path basename) not-in $IGNORE }
+      | where { ($in | path basename) not-in $IGNORE }
       | each { chmod +x $in }
     try { chmod +x $'($MOONBIT_BIN_DIR)/internal/tcc' } catch { print $'(ansi r)Failed to make tcc executable(ansi reset)' }
     rm moonbit*.tar.gz

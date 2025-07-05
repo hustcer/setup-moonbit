@@ -99,7 +99,7 @@ export def 'setup moonbit' [
 
   print 'OS Info:'; print $nu.os-info; hr-line
   print $'Contents of ($MOONBIT_BIN_DIR):'; hr-line -b
-  print (ls $MOONBIT_BIN_DIR)
+  ls $MOONBIT_BIN_DIR | table -w 150 -t psql | print
   if ('GITHUB_PATH' in $env) {
     echo $MOONBIT_BIN_DIR  o>> $env.GITHUB_PATH
   }

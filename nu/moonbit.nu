@@ -75,7 +75,7 @@ export def 'setup moonbit' [
 
   cd $MOONBIT_HOME
   let OS_INFO = $'($nu.os-info.name)_($nu.os-info.arch)'
-  let archive = $ARCH_TARGET_MAP | get -i $OS_INFO
+  let archive = $ARCH_TARGET_MAP | get -o $OS_INFO
   if ($archive | is-empty) { print $'Unsupported Platform: ($OS_INFO)'; exit 2 }
 
   print $'(char nl)Setup moonbit toolchain of version: (ansi g)($version)(ansi reset)'; hr-line

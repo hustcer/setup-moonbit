@@ -9,7 +9,7 @@ This GitHub Action will setup a [MoonBit](https://www.moonbitlang.com/) environm
 
 ## Usage
 
-**NOTE**: It's recommended to use `hustcer/setup-moonbit@v1.13` or `hustcer/setup-moonbit@v1`. The `v1` tag will always point to the latest `1.x` version.
+**NOTE**: It's recommended to use `hustcer/setup-moonbit@v1.16` or `hustcer/setup-moonbit@v1`. The `v1` tag will always point to the latest `1.x` version.
 
 ### Basic
 

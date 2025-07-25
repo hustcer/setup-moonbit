@@ -6,7 +6,7 @@
 
 ## 使用
 
-NOTE：推荐使用  `hustcer/setup-moonbit@v1.13` 或者 `hustcer/setup-moonbit@v1`, `v1` 始终指向最新的 `1.xx` 版本。
+NOTE：推荐使用  `hustcer/setup-moonbit@v1.16` 或者 `hustcer/setup-moonbit@v1`, `v1` 始终指向最新的 `1.xx` 版本。
 
 ### 基础使用
 

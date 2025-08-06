@@ -173,15 +173,15 @@ fi
 
 echo "Bundling core ..."
 
-PATH=$bin_dir $exe bundle --all --source-dir "$lib_dir"/core ||
+PATH=$bin_dir $exe bundle --warn-list -a --all --source-dir "$lib_dir"/core ||
   error "Failed to bundle core"
 
 if [[ $version == "bleeding" ]]; then
-  PATH=$bin_dir $exe bundle --target llvm --source-dir "$lib_dir"/core ||
+  PATH=$bin_dir $exe bundle --warn-list -a --target llvm --source-dir "$lib_dir"/core ||
     error "Failed to bundle core for llvm backend"
 fi
 
-PATH=$bin_dir $exe bundle --target wasm-gc --source-dir "$lib_dir"/core --quiet ||
+PATH=$bin_dir $exe bundle --warn-list -a --target wasm-gc --source-dir "$lib_dir"/core --quiet ||
   error "Failed to bundle core to wasm-gc"
 
 tildify() {

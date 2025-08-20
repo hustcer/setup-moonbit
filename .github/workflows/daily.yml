@@ -101,7 +101,7 @@ jobs:
     if: ${{ failure() }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Create an Issue for Release Failure
         uses: JasonEtco/create-an-issue@v2.9.2

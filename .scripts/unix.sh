@@ -84,9 +84,6 @@ fi
 target=''
 
 case $(uname -ms) in
-'Darwin x86_64')
-    target=darwin-x86_64
-    ;;
 'Darwin arm64')
     target=darwin-aarch64
     ;;

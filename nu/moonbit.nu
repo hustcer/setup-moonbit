@@ -59,10 +59,11 @@ def fetch-core [ version: string ] {
 
 # Download moonbit binary files to local
 export def 'setup moonbit' [
-  version: string = 'latest',             # The version of moonbit toolchain to setup, and `latest` by default
-  --setup-core(-c),                       # Setup moonbit core
+  version?,             # The version of moonbit toolchain to setup, and `latest` by default
+  --setup-core(-c),     # Setup moonbit core
   --core-version(-V): string = 'latest',  # The version of moonbit core to setup, `latest` by default
 ] {
+  let version = $version | default $env.MOONBIT_INSTALL_VERSION? | default 'latest'
   if ($version not-in $VALID_VERSION_TAG) and not (is-semver $version) {
     print $'(ansi r)Invalid version: ($version)(ansi reset)'; exit 2
   }

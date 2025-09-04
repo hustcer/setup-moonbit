@@ -100,7 +100,7 @@ if [[ -n $MOONBIT_INSTALL_DEV ]]; then
   target="$target-dev"
 fi
 
-version=${ARGUMENTS[0]:-latest}
+version=${ARGUMENTS[0]:-${MOONBIT_INSTALL_VERSION:-latest}}
 version=${version//+/%2B}
 
 CLI_MOONBIT="https://cli.moonbitlang.com"

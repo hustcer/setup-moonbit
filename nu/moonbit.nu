@@ -17,7 +17,7 @@
 
 const CLI_HOST = 'https://cli.moonbitlang.com'
 
-const VALID_VERSION_TAG = [latest, bleeding, pre-release]
+const VALID_VERSION_TAG = [latest, bleeding, pre-release, nightly]
 const ARCH_TARGET_MAP = {
   linux_x86_64: 'linux-x86_64',
   macos_x86_64: 'darwin-x86_64',
@@ -56,61 +56,85 @@ def fetch-core [ version: string ] {
 
 # Download moonbit binary files to local
 export def 'setup moonbit' [
-  version: string = 'latest',             # The version of moonbit toolchain to setup, and `latest` by default
-  --setup-core(-c),                       # Setup moonbit core
-  --core-version(-V): string = 'latest',  # The version of moonbit core to setup, `latest` by default
+  version?,                                # The version of moonbit toolchain to setup, default from env or `latest`
+  --setup-core(-c),                        # Setup moonbit core
+  --core-version(-V): string = 'latest',   # The version of moonbit core to setup, default to same as toolchain
 ] {
+  let version = $version | default $env.MOONBIT_INSTALL_VERSION? | default 'latest'
   if ($version not-in $VALID_VERSION_TAG) and not (is-semver $version) {
     print $'(ansi r)Invalid version: ($version)(ansi reset)'; exit 2
   }
-  let MOONBIT_HOME = $env.MOONBIT_HOME? | default ([$nu.home-path .moon] | path join)
-  let MOONBIT_BIN_DIR = [$MOONBIT_HOME bin] | path join
-  let MOONBIT_LIB_DIR = [$MOONBIT_HOME lib] | path join
-  let coreDir = $'($MOONBIT_LIB_DIR)/core'
-  if not ($MOONBIT_BIN_DIR | path exists) { mkdir $MOONBIT_BIN_DIR }
-  if not ($MOONBIT_LIB_DIR | path exists) { mkdir $MOONBIT_LIB_DIR }
+  let MOON_HOME = $env.MOON_HOME? | default ($env.MOONBIT_HOME? | default ([$nu.home-path .moon] | path join))
+  let MOON_BIN_DIR = [$MOON_HOME bin] | path join
+  let MOON_LIB_DIR = [$MOON_HOME lib] | path join
+  let coreDir = $'($MOON_LIB_DIR)/core'
+  if not ($MOON_BIN_DIR | path exists) { mkdir $MOON_BIN_DIR }
+  if not ($MOON_LIB_DIR | path exists) { mkdir $MOON_LIB_DIR }
 
-  cd $MOONBIT_HOME
+  cd $MOON_HOME
   let OS_INFO = $'($nu.os-info.name)_($nu.os-info.arch)'
   let archive = $ARCH_TARGET_MAP | get -i $OS_INFO
   if ($archive | is-empty) { print $'Unsupported Platform: ($OS_INFO)'; exit 2 }
 
   print $'(char nl)Setup moonbit toolchain of version: (ansi g)($version)(ansi reset)'; hr-line
-  print $'Current moon home: (ansi g)($MOONBIT_HOME)(ansi reset)'
+  print $'Current moon home: (ansi g)($MOON_HOME)(ansi reset)'
+
+  # Clean existing directories before extraction
+  try { rm -rf $MOON_BIN_DIR } catch {}
+  try { rm -rf $MOON_LIB_DIR } catch {}
+  try { rm -rf $'($MOON_HOME)/include' } catch {}
+
+  let isDev = 'MOONBIT_INSTALL_DEV' in $env
 
   if (windows?) {
-    fetch-release $version $'moonbit-($archive).zip'
-    unzip -qo $'moonbit-($archive).zip' -d $MOONBIT_HOME
+    let zipName = if $isDev { $'moonbit-($archive)-dev.zip' } else { $'moonbit-($archive).zip' }
+    fetch-release $version $zipName
+    unzip -qo $zipName -d $MOON_HOME
     rm moonbit*.zip
   } else {
-    fetch-release $version $'moonbit-($archive).tar.gz'
-    tar xf $'moonbit-($archive).tar.gz' --directory $MOONBIT_HOME
+    let target = if $isDev { $'($archive)-dev' } else { $archive }
+    let tarName = $'moonbit-($target).tar.gz'
+    fetch-release $version $tarName
+    tar xf $tarName --directory $MOON_HOME
     const IGNORE = []
-    ls $MOONBIT_BIN_DIR
+    ls $MOON_BIN_DIR
       | get name
       | filter { ($in | path basename) not-in $IGNORE }
       | each { chmod +x $in }
-    try { chmod +x $'($MOONBIT_BIN_DIR)/internal/tcc' } catch { print $'(ansi r)Failed to make tcc executable(ansi reset)' }
+    try { chmod +x $'($MOON_BIN_DIR)/internal/tcc' } catch { print $'(ansi r)Failed to make tcc executable(ansi reset)' }
     rm moonbit*.tar.gz
   }
 
+  # Create AGENTS.md link to moon-pilot prompt if exists
+  let promptPath = $'($MOON_BIN_DIR)/internal/moon-pilot/lib/prompt/moonbitlang.mbt.md'
+  if ($promptPath | path exists) {
+    let agentsPath = $'($MOON_HOME)/AGENTS.md'
+    try { if ($agentsPath | path exists) { rm -f $agentsPath } } catch {}
+    if (windows?) {
+      try { ^pwsh -NoProfile -Command $"New-Item -ItemType HardLink -Path '($agentsPath)' -Value '($promptPath)'" } catch {}
+    } else {
+      try { ^ln -sf $promptPath $agentsPath } catch {}
+    }
+  }
+
   print 'OS Info:'; print $nu.os-info; hr-line
-  print $'Contents of ($MOONBIT_BIN_DIR):'; hr-line -b
-  print (ls $MOONBIT_BIN_DIR)
+  print $'Contents of ($MOON_BIN_DIR):'; hr-line -b
+  print (ls $MOON_BIN_DIR)
   if ('GITHUB_PATH' in $env) {
-    echo $MOONBIT_BIN_DIR  o>> $env.GITHUB_PATH
+    echo $MOON_BIN_DIR  o>> $env.GITHUB_PATH
   }
   if ('Path' in $env) {
-    $env.Path = ($env.Path | split row (char esep) | prepend $MOONBIT_BIN_DIR)
+    $env.Path = ($env.Path | split row (char esep) | prepend $MOON_BIN_DIR)
   }
   if ('PATH' in $env) {
-    $env.PATH = ($env.PATH | split row (char esep) | prepend $MOONBIT_BIN_DIR)
+    $env.PATH = ($env.PATH | split row (char esep) | prepend $MOON_BIN_DIR)
   }
 
   if $setup_core {
-    print $'(char nl)Setup moonbit core of version: (ansi g)($core_version)(ansi reset)'; hr-line
-    cd $MOONBIT_LIB_DIR; rm -rf ./core/*
-    if $core_version == 'bleeding' {
+    let real_core_version = if ($core_version == 'latest') { $version } else { $core_version }
+    print $'(char nl)Setup moonbit core of version: (ansi g)($real_core_version)(ansi reset)'; hr-line
+    cd $MOON_LIB_DIR; try { rm -rf $coreDir } catch {}
+    if $real_core_version == 'bleeding' {
       if ($coreDir | path exists) { rm -rf $coreDir }
       try { git clone --depth 1 https://github.com/moonbitlang/core.git $coreDir } catch {
         print $'(ansi r)Failed to clone bleeding core from GitHub(ansi reset)'
@@ -119,12 +143,12 @@ export def 'setup moonbit' [
       return
     }
 
-    fetch-core $core_version
+    fetch-core $real_core_version
 
     if (windows?) {
-      unzip -qo $'core-($core_version).zip' -d $MOONBIT_LIB_DIR; rm $'core-($core_version).zip'
+      unzip -qo $'core-($real_core_version).zip' -d $MOON_LIB_DIR; rm $'core-($real_core_version).zip'
     } else {
-      tar xf $'core-($core_version).tar.gz' --directory $MOONBIT_LIB_DIR; rm $'core-($core_version).tar.gz'
+      tar xf $'core-($real_core_version).tar.gz' --directory $MOON_LIB_DIR; rm $'core-($real_core_version).tar.gz'
     }
     bundle-core $coreDir $version
   }
@@ -135,19 +159,19 @@ def bundle-core [coreDir: string, version: string] {
   let moonBin = if (windows?) { 'moon.exe' } else { 'moon' }
   print $'(char nl)Bundle moonbit core(ansi reset)'; hr-line
   try {
-    ^$moonBin bundle --all --source-dir $coreDir
+    ^$moonBin bundle --warn-list -a --all --source-dir $coreDir
   } catch {
     print $'(ansi r)Failed to bundle core(ansi reset)'
   }
   try {
-    ^$moonBin bundle --target wasm-gc --source-dir $coreDir --quiet
+    ^$moonBin bundle --warn-list -a --target wasm-gc --source-dir $coreDir --quiet
   } catch {
     print $'(ansi r)Failed to bundle core to wasm-gc(ansi reset)'
   }
-  if $version != 'bleeding' or (windows?) { return }
+  if $version != 'nightly' or (windows?) { return }
   print $'(ansi g)Bundle core for llvm backend(ansi reset)'
   try {
-    ^$moonBin bundle --target llvm --source-dir $coreDir
+    ^$moonBin bundle --warn-list -a --target llvm --source-dir $coreDir
   } catch {
     print $'(ansi r)Failed to bundle core for llvm backend(ansi reset)'
   }

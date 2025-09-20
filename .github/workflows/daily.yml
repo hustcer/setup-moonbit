@@ -54,26 +54,6 @@ jobs:
         run: |
           moon version --all
 
-  setup-bleeding:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
-
-    runs-on: ${{ matrix.os }}
-    name: Setup Bleeding@${{ matrix.os }}
-    steps:
-      - name: Setup Moonbit
-        uses: hustcer/setup-moonbit@develop
-        with:
-          version: bleeding
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Check Moonbit Version
-        run: |
-          moon version --all
-
   setup-nightly:
     strategy:
       fail-fast: false
@@ -96,7 +76,7 @@ jobs:
           moon version --all
 
   create-failure-alert:
-    needs: [setup-latest, setup-rc, setup-bleeding, setup-nightly]
+    needs: [setup-latest, setup-rc, setup-nightly]
     runs-on: ubuntu-latest
     if: ${{ failure() }}
     steps:

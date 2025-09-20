@@ -7,7 +7,6 @@
 #   [√] This script should run both in Github Runners and local machines
 #   [√] Setup moonbit toolchains of specified version
 #   [√] Setup Moonbit Core support
-#   [√] Setup moonbit core of `bleeding` version support
 # Description: Scripts for setting up MoonBit environment
 # REF:
 #   - https://cli.moonbitlang.com/version.json
@@ -17,7 +16,7 @@
 
 const CLI_HOST = 'https://cli.moonbitlang.com'
 
-const VALID_VERSION_TAG = [latest, bleeding, pre-release, nightly]
+const VALID_VERSION_TAG = [latest, pre-release, nightly]
 const ARCH_TARGET_MAP = {
   linux_x86_64: 'linux-x86_64',
   macos_x86_64: 'darwin-x86_64',
@@ -98,6 +97,20 @@ export def 'setup moonbit' [
     rm moonbit*.tar.gz
   }
 
+  # Link AGENTS.md to moon-pilot prompt if available
+  let agents_src = $"($MOONBIT_HOME)/bin/internal/moon-pilot/lib/prompt/moonbitlang.mbt.md"
+  if ($agents_src | path exists) {
+    let agents_dst = $"($MOONBIT_HOME)/AGENTS.md"
+    if ($agents_dst | path exists) { rm -f $agents_dst }
+    if (windows?) {
+      let agents_src_win = $"($MOONBIT_HOME)\\bin\\internal\\moon-pilot\\lib\\prompt\\moonbitlang.mbt.md"
+      let agents_dst_win = $"($MOONBIT_HOME)\\AGENTS.md"
+      try { ^cmd /c mklink /H $agents_dst_win $agents_src_win } catch { print $"(ansi r)Failed to create hard link for ($agents_src_win)(ansi reset)" }
+    } else {
+      try { ^ln -sf $agents_src $agents_dst } catch { print $"(ansi r)Failed to create symlink for ($agents_src)(ansi reset)" }
+    }
+  }
+
   print 'OS Info:'; print $nu.os-info; hr-line
   print $'Contents of ($MOONBIT_BIN_DIR):'; hr-line -b
   ls $MOONBIT_BIN_DIR | table -w 150 -t psql | print
@@ -114,14 +127,6 @@ export def 'setup moonbit' [
   if $setup_core {
     print $'(char nl)Setup moonbit core of version: (ansi g)($core_version)(ansi reset)'; hr-line
     cd $MOONBIT_LIB_DIR; rm -rf ./core/*
-    if $core_version == 'bleeding' {
-      if ($coreDir | path exists) { rm -rf $coreDir }
-      try { git clone --depth 1 https://github.com/moonbitlang/core.git $coreDir } catch {
-        print $'(ansi r)Failed to clone bleeding core from GitHub(ansi reset)'
-      }
-      bundle-core $coreDir $version
-      return
-    }
 
     fetch-core $core_version
 
@@ -148,7 +153,7 @@ def bundle-core [coreDir: string, version: string] {
   } catch {
     print $'(ansi r)Failed to bundle core to wasm-gc(ansi reset)'
   }
-  if $version != 'bleeding' or (windows?) { return }
+  if $version != 'nightly' or (windows?) { return }
   print $'(ansi g)Bundle core for llvm backend(ansi reset)'
   try {
     ^$moonBin bundle --warn-list -a --target llvm --source-dir $coreDir

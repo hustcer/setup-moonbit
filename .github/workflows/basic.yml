@@ -48,28 +48,28 @@ jobs:
         uses: hustcer/setup-moonbit@develop
         with:
           setup-core: false
-          version: 0.6.21
+          version: 0.6.28+d96d14d39
 
       - name: Check Moonbit Version
         run: |
           moon version --all
 
-  setup-moonbit-bleeding:
+  setup-moonbit-nightly:
     strategy:
       fail-fast: false
       matrix:
         os: [macos-latest]
     runs-on: ${{ matrix.os }}
-    name: Setup MoonBit Bleeding@${{ matrix.os }}
+    name: Setup MoonBit Nightly@${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Setup Moonbit Bleeding
+      - name: Setup Moonbit Nightly
         uses: hustcer/setup-moonbit@develop
         with:
-          version: bleeding
-          core-version: bleeding
+          version: nightly
+          core-version: nightly
 
       - name: Check Moonbit Version
         run: |

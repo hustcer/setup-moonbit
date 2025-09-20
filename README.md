@@ -39,9 +39,9 @@ In rare circumstances you might get rate limiting errors, if this happens you ca
 
 | Name         | Type     | Description                                                                                                                                       |
 | ------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `version`    | `string` | Optional, A valid moonbit tool chain version, such as `0.6.18+8382ed77e`, `latest`, `pre-release`, etc. or even `bleeding`. Defaults to `latest` or the value of `MOONBIT_INSTALL_VERSION` environment variable |
+| `version`    | `string` | Optional, A valid moonbit tool chain version, such as `0.6.18+8382ed77e`, `latest`, `pre-release`, etc. or even `nightly`. Defaults to `latest` or the value of `MOONBIT_INSTALL_VERSION` environment variable |
 | `setup-core` | `bool`   | Optional, Set to `true` to download and bundle Moonbit Core, `false` to ignore it, default to `true`                                              |
-| `core-version` | `string` | Optional, A valid moonbit core version, such as `0.6.18+8382ed77e`, `latest`, `pre-release`, `bleeding` etc. Default to `latest` |
+| `core-version` | `string` | Optional, A valid moonbit core version, such as `0.6.18+8382ed77e`, `latest`, `pre-release`, `nightly` etc. Default to `latest` |
 
 ## License
 

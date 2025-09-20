@@ -1,6 +1,19 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.17] - 2025-09-20
+
+### Features
+
+- Add `--warn-list -a` flags for moon bundle
+- Honor `MOONBIT_INSTALL_VERSION` for installing moon bins
+- Update `moonbit.nu` with latest upstream changes (#88)
+
+### Deps
+
+- Upgrade `actions/checkout` to v5
+- Upgrade `nushell` to v0.107.0
+
 ## [1.16] - 2025-07-25
 
 ### Bug Fixes

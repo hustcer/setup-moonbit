@@ -53,25 +53,22 @@ try {
   }
   Expand-Archive "${HOME}\moonbit.zip" -DestinationPath $MoonHome -Force
   Remove-Item -Force "${HOME}\moonbit.zip"
+  if (Test-Path -Path "$MoonHome\bin\internal\moon-pilot\lib\prompt\moonbitlang.mbt.md") {
+    if (Test-Path -Path "$MoonHome\AGENTS.md") {
+      Remove-Item -Force -Path "$MoonHome\AGENTS.md"
+    }
+    # SymbolicLink on Windows requires elevated privileges, so use HardLink instead
+    New-Item -ItemType HardLink -Path "${MoonHome}\AGENTS.md" -Value "$MoonHome\bin\internal\moon-pilot\lib\prompt\moonbitlang.mbt.md"
+  }
 
   Write-Output "Downloading core ..."
   if (Test-Path -Path $MoonLib\core) {
     Remove-Item -Force -Recurse $MoonLib\core
   }
-  if ($Version -eq "bleeding") {
-    # Clone core repository for bleeding version
-    git clone --depth 1 https://github.com/moonbitlang/core.git "$MoonLib\core"
-    if ($LASTEXITCODE -ne 0) {
-        Write-Output "Install Failed:"
-        Write-Output "Failed to clone core from github"
-        exit 1
-    }
-  } else {
-    # Download regular release version
-    Invoke-WebRequest -Uri $CoreUri -OutFile $MoonHome\core.zip
-    Expand-Archive $MoonHome\core.zip -DestinationPath $MoonLib -Force
-    Remove-Item -Force $MoonHome\core.zip
-  }
+  # Download regular release version
+  Invoke-WebRequest -Uri $CoreUri -OutFile $MoonHome\core.zip
+  Expand-Archive $MoonHome\core.zip -DestinationPath $MoonLib -Force
+  Remove-Item -Force $MoonHome\core.zip
 
   Write-Output "Bundling core ..."
   Push-Location $MoonLib\core

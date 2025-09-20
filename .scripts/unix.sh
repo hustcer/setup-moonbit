@@ -138,6 +138,15 @@ rm -rf "$moon_home/include" ||
 tar xf "$moonbit_dest" --directory="$moon_home" ||
   error "Failed to extract moonbit to \"$moon_home\""
 
+if [[ -f "$moon_home/bin/internal/moon-pilot/lib/prompt/moonbitlang.mbt.md" ]]; then
+  if [[ -f "$moon_home/AGENTS.md" ]]; then
+    rm -f "$moon_home/AGENTS.md" ||
+      error "Failed to remove existing $moon_home/AGENTS.md"
+  fi
+  ln -s "$moon_home/bin/internal/moon-pilot/lib/prompt/moonbitlang.mbt.md" "$moon_home/AGENTS.md" ||
+    error "Failed to create symlink for $moon_home/bin/internal/moon-pilot/lib/prompt/moonbitlang.mbt.md"
+fi
+
 rm -f "$moonbit_dest" ||
   error "Failed to remove \"$moonbit_dest\""
 
@@ -154,26 +163,21 @@ rm -rf "$lib_dir/core" ||
   error "Failed to remove existing core"
 
 echo "Downloading core ..."
-if [[ $version == "bleeding" ]]; then
-  git clone --depth 1 https://github.com/moonbitlang/core.git "$lib_dir/core" ||
-    error "Failed to clone core from github"
-else
-  curl --fail --location --progress-bar --output "$core_dest" "$core_uri" ||
-    error "Failed to download core from \"$core_uri\""
+curl --fail --location --progress-bar --output "$core_dest" "$core_uri" ||
+  error "Failed to download core from \"$core_uri\""
 
-  tar xf "$core_dest" --directory="$lib_dir" ||
-    error "Failed to extract core to \"$lib_dir\""
+tar xf "$core_dest" --directory="$lib_dir" ||
+  error "Failed to extract core to \"$lib_dir\""
 
-  rm -f "$core_dest" ||
-    error "Failed to remove \"$core_dest\""
-fi
+rm -f "$core_dest" ||
+  error "Failed to remove \"$core_dest\""
 
 echo "Bundling core ..."
 
 PATH=$bin_dir $exe bundle --warn-list -a --all --source-dir "$lib_dir"/core ||
   error "Failed to bundle core"
 
-if [[ $version == "bleeding" ]]; then
+if [[ $version == "nightly" ]]; then
   PATH=$bin_dir $exe bundle --warn-list -a --target llvm --source-dir "$lib_dir"/core ||
     error "Failed to bundle core for llvm backend"
 fi

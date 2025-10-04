@@ -16,6 +16,10 @@
 
 const CLI_HOST = 'https://cli.moonbitlang.com'
 
+# It takes longer to respond to requests made with unknown/rare user agents.
+# When make http post pretend to be curl, it gets a response just as quickly as curl.
+export const HTTP_HEADERS = [User-Agent curl/8.9]
+
 const VALID_VERSION_TAG = [latest, pre-release, nightly]
 const ARCH_TARGET_MAP = {
   linux_x86_64: 'linux-x86_64',
@@ -34,9 +38,9 @@ def fetch-release [ version: string, archive: string ] {
   let assets = $'($CLI_HOST)/binaries/($version)/($archive)'
   print $'Fetch binaries from (ansi g)($assets)(ansi reset)'
   if (is-installed aria2c) {
-    aria2c --allow-overwrite $assets
+    aria2c --user-agent 'curl/8.9' --allow-overwrite $assets
   } else {
-    http get $assets | save --progress --force $archive
+    http get -H $HTTP_HEADERS $assets | save --progress --force $archive
   }
 }
 
@@ -50,9 +54,9 @@ def fetch-core [ version: string ] {
   let assets = $'($CLI_HOST)/cores/core-($suffix)'
   print $'Fetch core assets from (ansi g)($assets)(ansi reset)'
   if (is-installed aria2c) {
-    aria2c --allow-overwrite $assets
+    aria2c --user-agent 'curl/8.9' --allow-overwrite $assets
   } else {
-    http get $assets | save --progress --force $'core-($suffix)'
+    http get -H $HTTP_HEADERS $assets | save --progress --force $'core-($suffix)'
   }
 }
 

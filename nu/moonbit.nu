@@ -32,19 +32,19 @@ export-env {
   $env.config.color_config.leading_trailing_space_bg = { attr: n }
 }
 
-# Download binary file from CLI_HOST with aria2c or `http get`
+# Download binary file from CLI_HOST with curl or `http get`
 def fetch-release [ version: string, archive: string ] {
   let version = $version | str replace + %2B
   let assets = $'($CLI_HOST)/binaries/($version)/($archive)'
   print $'Fetch binaries from (ansi g)($assets)(ansi reset)'
-  if (is-installed aria2c) {
-    aria2c --user-agent 'curl/8.9' --allow-overwrite $assets
+  if (is-installed curl) {
+    curl -O -L $assets
   } else {
     http get -H $HTTP_HEADERS $assets | save --progress --force $archive
   }
 }
 
-# Download moonbit core from CLI_HOST with aria2c or `http get`
+# Download moonbit core from CLI_HOST with curl or `http get`
 def fetch-core [ version: string ] {
   if ($version not-in $VALID_VERSION_TAG) and not (is-semver $version) {
     print $'(ansi r)Invalid version: ($version)(ansi reset)'; exit 2
@@ -53,8 +53,8 @@ def fetch-core [ version: string ] {
   let suffix = if (windows?) { $'($version).zip' } else { $'($version).tar.gz' }
   let assets = $'($CLI_HOST)/cores/core-($suffix)'
   print $'Fetch core assets from (ansi g)($assets)(ansi reset)'
-  if (is-installed aria2c) {
-    aria2c --user-agent 'curl/8.9' --allow-overwrite $assets
+  if (is-installed curl) {
+    curl -O -L $assets
   } else {
     http get -H $HTTP_HEADERS $assets | save --progress --force $'core-($suffix)'
   }

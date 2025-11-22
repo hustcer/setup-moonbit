@@ -5,7 +5,7 @@
 [![Setup-Moonbit@Dev](https://github.com/hustcer/setup-moonbit/actions/workflows/basic.yml/badge.svg)](https://github.com/hustcer/setup-moonbit/actions/workflows/basic.yml)
 [![Daily Checking](https://github.com/hustcer/setup-moonbit/actions/workflows/daily.yml/badge.svg)](https://github.com/hustcer/setup-moonbit/actions/workflows/daily.yml)
 
-This GitHub Action will setup a [MoonBit](https://www.moonbitlang.com/) environment for you. It should work on Github `macOS` , `Ubuntu` , and `Windows` runners.
+This GitHub Action will setup a [MoonBit](https://www.moonbitlang.com/) environment for you. It should work on Github `macOS`, `Ubuntu`, and `Windows` runners.
 
 ## Usage
 
@@ -39,9 +39,9 @@ In rare circumstances you might get rate limiting errors, if this happens you ca
 
 | Name         | Type     | Description                                                                                                                                       |
 | ------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `version`    | `string` | Optional, A valid moonbit tool chain version, such as `0.6.18+8382ed77e`, `latest`, `pre-release`, etc. or even `nightly`. Defaults to `latest` or the value of `MOONBIT_INSTALL_VERSION` environment variable |
-| `setup-core` | `bool`   | Optional, Set to `true` to download and bundle Moonbit Core, `false` to ignore it, default to `true`                                              |
-| `core-version` | `string` | Optional, A valid moonbit core version, such as `0.6.18+8382ed77e`, `latest`, `pre-release`, `nightly` etc. Default to `latest` |
+| `version`    | `string` | Optional, A valid moonbit tool chain version, such as `0.6.18+8382ed77e`, `latest`, `pre-release`, or `nightly`. Defaults to `latest` or the value of `MOONBIT_INSTALL_VERSION` environment variable |
+| `setup-core` | `bool`   | Optional, Set to `true` to download and bundle Moonbit Core, `false` to skip it. Defaults to `true`                                              |
+| `core-version` | `string` | Optional, A valid moonbit core version, such as `0.6.18+8382ed77e`, `latest`, `pre-release`, or `nightly`. Defaults to `latest` |
 
 ## License
 

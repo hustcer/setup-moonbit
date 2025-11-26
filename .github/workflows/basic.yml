@@ -24,7 +24,7 @@ jobs:
     name: Setup MoonBit@${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup Moonbit
         uses: hustcer/setup-moonbit@develop
@@ -42,7 +42,7 @@ jobs:
     name: Setup MoonBit with Version@${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup Moonbit with Version
         uses: hustcer/setup-moonbit@develop
@@ -63,7 +63,7 @@ jobs:
     name: Setup MoonBit Nightly@${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup Moonbit Nightly
         uses: hustcer/setup-moonbit@develop

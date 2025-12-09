@@ -126,13 +126,13 @@ echo "Downloading moonbit ..."
 curl --fail --location --progress-bar --output "$moonbit_dest" "$moonbit_uri" ||
   error "Failed to download moonbit from \"$moonbit_uri\""
 
-rm -rf "$moon_home/bin" ||
+rm -rf "${moon_home:?}/bin" ||
   error "Failed to remove existing moonbit binaries"
 
-rm -rf "$moon_home/lib" ||
+rm -rf "${moon_home:?}/lib" ||
   error "Failed to remove existing moonbit libraries"
 
-rm -rf "$moon_home/include" ||
+rm -rf "${moon_home:?}/include" ||
   error "Failed to remove existing moonbit includes"
 
 tar xf "$moonbit_dest" --directory="$moon_home" ||

@@ -70,7 +70,7 @@ export def 'setup moonbit' [
   if ($version not-in $VALID_VERSION_TAG) and not (is-semver $version) {
     print $'(ansi r)Invalid version: ($version)(ansi reset)'; exit 2
   }
-  let MOONBIT_HOME = $env.MOONBIT_HOME? | default ([$nu.home-path .moon] | path join)
+  let MOONBIT_HOME = $env.MOONBIT_HOME? | default ([($nu.home-path? | default $nu.home-dir?) .moon] | path join)
   let MOONBIT_BIN_DIR = [$MOONBIT_HOME bin] | path join
   let MOONBIT_LIB_DIR = [$MOONBIT_HOME lib] | path join
   let coreDir = $'($MOONBIT_LIB_DIR)/core'

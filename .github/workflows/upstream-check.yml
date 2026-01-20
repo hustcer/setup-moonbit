@@ -28,7 +28,7 @@ jobs:
       - name: Setup Nushell
         uses: hustcer/setup-nu@v3
         with:
-          version: 0.109.1
+          version: 0.110.0
 
       - name: Create PR if Upstream was Updated
         shell: nu {0}

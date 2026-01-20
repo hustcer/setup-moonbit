@@ -12,6 +12,7 @@ words:
 - endfor
 - dotenv
 - libtcc
+- mklink
 - nushell
 - hustcer
 - rsbuild
@@ -22,4 +23,5 @@ words:
 - linewise
 - deepseek
 - Infinigence
+- moonbitlang
 ignorePaths:

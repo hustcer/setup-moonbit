@@ -1,6 +1,27 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.18] - 2026-01-23
+
+### Features
+
+- Add user agent for assets downloading (#91)
+- Use curl instead of aria2c to avoid 403 error
+
+### Miscellaneous Tasks
+
+- Update README.md
+- Pin Nu to 0.108 for upstream-check.yml
+- Update Nushell to 0.110.0 (#96)
+
+### Deps
+
+- Upgrade `nushell` to v0.108.0
+- Upgrade hustcer/setup-nu to v3.21
+- Upgrade actions/checkout to v6 (#93)
+- Update Nu to 0.109.1 (#94)
+- Upgrade hustcer/setup-nu to v3.22 & Nu
+
 ## [1.17] - 2025-09-20
 
 ### Features

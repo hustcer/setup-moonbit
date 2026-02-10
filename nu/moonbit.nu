@@ -148,19 +148,19 @@ def bundle-core [coreDir: string, version: string] {
   let moonBin = if (windows?) { 'moon.exe' } else { 'moon' }
   print $'(char nl)Bundle moonbit core(ansi reset)'; hr-line
   try {
-    ^$moonBin bundle --warn-list -a --all --source-dir $coreDir
+    ^$moonBin -C $coreDir bundle --warn-list -a --all
   } catch {
     print $'(ansi r)Failed to bundle core(ansi reset)'
   }
   try {
-    ^$moonBin bundle --warn-list -a --target wasm-gc --source-dir $coreDir --quiet
+    ^$moonBin -C $coreDir bundle --warn-list -a --target wasm-gc --quiet
   } catch {
     print $'(ansi r)Failed to bundle core to wasm-gc(ansi reset)'
   }
   if $version != 'nightly' or (windows?) { return }
   print $'(ansi g)Bundle core for llvm backend(ansi reset)'
   try {
-    ^$moonBin bundle --warn-list -a --target llvm --source-dir $coreDir
+    ^$moonBin -C $coreDir bundle --warn-list -a --target llvm
   } catch {
     print $'(ansi r)Failed to bundle core for llvm backend(ansi reset)'
   }

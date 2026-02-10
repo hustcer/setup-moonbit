@@ -42,9 +42,6 @@ try {
   }
   Write-Output "Downloading moonbit ..."
   Invoke-WebRequest -Uri $MoonbitUri -OutFile "${HOME}\moonbit.zip"
-  if (Test-Path -Path "$MoonHome\bin" -PathType Container) {
-    Remove-Item -Force -Recurse "$MoonHome\bin"
-  }
   if (Test-Path -Path "$MoonHome\lib" -PathType Container) {
     Remove-Item -Force -Recurse "$MoonHome\lib"
   }

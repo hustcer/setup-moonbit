@@ -126,9 +126,6 @@ echo "Downloading moonbit ..."
 curl --fail --location --progress-bar --output "$moonbit_dest" "$moonbit_uri" ||
   error "Failed to download moonbit from \"$moonbit_uri\""
 
-rm -rf "${moon_home:?}/bin" ||
-  error "Failed to remove existing moonbit binaries"
-
 rm -rf "${moon_home:?}/lib" ||
   error "Failed to remove existing moonbit libraries"
 
@@ -174,15 +171,15 @@ rm -f "$core_dest" ||
 
 echo "Bundling core ..."
 
-PATH=$bin_dir $exe bundle --warn-list -a --all --source-dir "$lib_dir"/core ||
+PATH=$bin_dir $exe -C "$lib_dir"/core bundle --warn-list -a --all ||
   error "Failed to bundle core"
 
 if [[ $version == "nightly" ]]; then
-  PATH=$bin_dir $exe bundle --warn-list -a --target llvm --source-dir "$lib_dir"/core ||
+  PATH=$bin_dir $exe -C "$lib_dir"/core bundle --warn-list -a --target llvm ||
     error "Failed to bundle core for llvm backend"
 fi
 
-PATH=$bin_dir $exe bundle --warn-list -a --target wasm-gc --source-dir "$lib_dir"/core --quiet ||
+PATH=$bin_dir $exe -C "$lib_dir"/core bundle --warn-list -a --target wasm-gc --quiet ||
   error "Failed to bundle core to wasm-gc"
 
 tildify() {

@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.19] - 2026-02-10
+
+### Bug Fixes
+
+- Fix bundling of core due to upstream changes (#98)
+
 ## [1.18] - 2026-01-23
 
 ### Features

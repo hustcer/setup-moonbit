@@ -42,13 +42,23 @@ export def 'make-release' [
   git push origin $majorTag $releaseVer --force
 }
 
+# Check if current directory is a git repo
+export def is-repo [] {
+  let checkRepo = try {
+      # Put `complete` inside `do` block to avoid pipefail error in Nushell 0.110+
+      do { git rev-parse --is-inside-work-tree | complete }
+    } catch {
+      ({ stdout: 'false' })
+    }
+  if ($checkRepo.stdout =~ 'true') { true } else { false }
+}
+
 # Check if a git repo has the specified ref: could be a branch or tag, etc.
 export def has-ref [
   ref: string   # The git ref to check
 ] {
-  let checkRepo = (do -i { git rev-parse --is-inside-work-tree } | complete)
-  if not ($checkRepo.stdout =~ 'true') { return false }
-  # Brackets were required here, or error will occur
-  let parse = (do -i { git rev-parse --verify -q $ref } | complete)
+  if not (is-repo) { return false }
+  # Put `complete` inside `do` block to avoid pipefail error in Nushell 0.110+
+  let parse = (do { git rev-parse --verify -q $ref | complete })
   if ($parse.stdout | is-empty) { false } else { true }
 }

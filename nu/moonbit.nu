@@ -60,6 +60,33 @@ def fetch-core [ version: string ] {
   }
 }
 
+# Patch runtime.c to guard `#include <windows.h>` behind MOONBIT_NATIVE_NO_SYS_HEADER.
+# The bundled TCC doesn't ship with winapi headers and the moon build tool compiles with
+# -DMOONBIT_NATIVE_NO_SYS_HEADER, but the runtime still includes <windows.h> unconditionally
+# for GetConsoleOutputCP/SetConsoleOutputCP used in moonbit_println. Without Visual Studio
+# installed TCC can't discover system headers, causing the native target build to fail.
+def patch-runtime-windows-header [libDir: string] {
+  let runtime = [$libDir runtime.c] | path join
+  if not ($runtime | path exists) { return }
+  let content = open $runtime
+  let old = "#ifdef _WIN32\n#include <windows.h>\n#endif"
+  if ($content | str contains $old) {
+    let new = [
+      '#ifdef _WIN32'
+      '#ifndef MOONBIT_NATIVE_NO_SYS_HEADER'
+      '#include <windows.h>'
+      '#else'
+      '#define CP_UTF8 65001'
+      'unsigned int GetConsoleOutputCP(void);'
+      'int SetConsoleOutputCP(unsigned int);'
+      '#endif'
+      '#endif'
+    ] | str join "\n"
+    $content | str replace $old $new | save --force $runtime
+    print $'(ansi g)Patched runtime.c: guarded <windows.h> behind MOONBIT_NATIVE_NO_SYS_HEADER(ansi reset)'
+  }
+}
+
 # Download moonbit binary files to local
 export def 'setup moonbit' [
   version?,             # The version of moonbit toolchain to setup, and `latest` by default
@@ -86,9 +113,20 @@ export def 'setup moonbit' [
   print $'Current moon home: (ansi g)($MOONBIT_HOME)(ansi reset)'
 
   if (windows?) {
+    # Clean up old lib and include directories before extraction to
+    # avoid stale files, matching the behavior of the official install script
+    let includeDir = [$MOONBIT_HOME include] | path join
+    if ($MOONBIT_LIB_DIR | path exists) { rm -rf $MOONBIT_LIB_DIR }
+    if ($includeDir | path exists) { rm -rf $includeDir }
     fetch-release $version $'moonbit-($archive).zip'
     unzip -qo $'moonbit-($archive).zip' -d $MOONBIT_HOME
     rm moonbit*.zip
+    # Workaround: runtime.c includes <windows.h> without guarding it
+    # behind MOONBIT_NATIVE_NO_SYS_HEADER. When TCC has no winapi headers
+    # and Visual Studio is not installed, this causes the native build to
+    # fail. Patch runtime.c to guard the include and provide manual
+    # declarations for the required Windows API functions.
+    patch-runtime-windows-header $MOONBIT_LIB_DIR
   } else {
     fetch-release $version $'moonbit-($archive).tar.gz'
     tar xf $'moonbit-($archive).tar.gz' --directory $MOONBIT_HOME

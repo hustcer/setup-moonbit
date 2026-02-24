@@ -112,12 +112,13 @@ export def 'setup moonbit' [
   print $'(char nl)Setup moonbit toolchain of version: (ansi g)($version)(ansi reset)'; hr-line
   print $'Current moon home: (ansi g)($MOONBIT_HOME)(ansi reset)'
 
+  # Clean up old lib and include directories before extraction to
+  # avoid stale files, matching the behavior of the official install scripts
+  let includeDir = [$MOONBIT_HOME include] | path join
+  if ($MOONBIT_LIB_DIR | path exists) { rm -rf $MOONBIT_LIB_DIR }
+  if ($includeDir | path exists) { rm -rf $includeDir }
+
   if (windows?) {
-    # Clean up old lib and include directories before extraction to
-    # avoid stale files, matching the behavior of the official install script
-    let includeDir = [$MOONBIT_HOME include] | path join
-    if ($MOONBIT_LIB_DIR | path exists) { rm -rf $MOONBIT_LIB_DIR }
-    if ($includeDir | path exists) { rm -rf $includeDir }
     fetch-release $version $'moonbit-($archive).zip'
     unzip -qo $'moonbit-($archive).zip' -d $MOONBIT_HOME
     rm moonbit*.zip

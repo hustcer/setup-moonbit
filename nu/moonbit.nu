@@ -92,6 +92,7 @@ export def 'setup moonbit' [
   version?,             # The version of moonbit toolchain to setup, and `latest` by default
   --setup-core(-c),     # Setup moonbit core
   --core-version(-V): string = 'latest',  # The version of moonbit core to setup, `latest` by default
+  --patch-runtime(-p),  # Patch runtime.c to fix native build on Windows without Visual Studio
 ] {
   let version = $version | default $env.MOONBIT_INSTALL_VERSION? | default 'latest'
   if ($version not-in $VALID_VERSION_TAG) and not (is-semver $version) {
@@ -122,12 +123,14 @@ export def 'setup moonbit' [
     fetch-release $version $'moonbit-($archive).zip'
     unzip -qo $'moonbit-($archive).zip' -d $MOONBIT_HOME
     rm moonbit*.zip
-    # Workaround: runtime.c includes <windows.h> without guarding it
-    # behind MOONBIT_NATIVE_NO_SYS_HEADER. When TCC has no winapi headers
-    # and Visual Studio is not installed, this causes the native build to
-    # fail. Patch runtime.c to guard the include and provide manual
-    # declarations for the required Windows API functions.
-    patch-runtime-windows-header $MOONBIT_LIB_DIR
+    if $patch_runtime {
+      # Workaround: runtime.c includes <windows.h> without guarding it
+      # behind MOONBIT_NATIVE_NO_SYS_HEADER. When TCC has no winapi headers
+      # and Visual Studio is not installed, this causes the native build to
+      # fail. Patch runtime.c to guard the include and provide manual
+      # declarations for the required Windows API functions.
+      patch-runtime-windows-header $MOONBIT_LIB_DIR
+    }
   } else {
     fetch-release $version $'moonbit-($archive).tar.gz'
     tar xf $'moonbit-($archive).tar.gz' --directory $MOONBIT_HOME

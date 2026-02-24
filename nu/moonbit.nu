@@ -116,8 +116,8 @@ export def 'setup moonbit' [
   # Clean up old lib and include directories before extraction to
   # avoid stale files, matching the behavior of the official install scripts
   let includeDir = [$MOONBIT_HOME include] | path join
-  if ($MOONBIT_LIB_DIR | path exists) { rm -rf $MOONBIT_LIB_DIR }
   if ($includeDir | path exists) { rm -rf $includeDir }
+  if ($MOONBIT_LIB_DIR | path exists) { rm -rf $MOONBIT_LIB_DIR }
 
   if (windows?) {
     fetch-release $version $'moonbit-($archive).zip'

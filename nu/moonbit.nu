@@ -250,4 +250,11 @@ export def hr-line [
   if $blank_line { char nl }
 }
 
-alias main = setup moonbit
+export def main [
+  version?,             # The version of moonbit toolchain to setup, and `latest` by default
+  --setup-core(-c),     # Setup moonbit core
+  --core-version(-V): string = 'latest',  # The version of moonbit core to setup, `latest` by default
+  --patch-runtime(-p),  # Patch runtime.c to fix native build on Windows without Visual Studio
+] {
+  setup moonbit $version --setup-core=$setup_core --core-version=$core_version --patch-runtime=$patch_runtime
+}

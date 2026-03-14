@@ -8,9 +8,9 @@ else {
 
 $Version = $Version -replace '\+', '%2B'
 
-if ($env:PROCESSOR_ARCHITECTURE -ne "AMD64") {
+if ($env:PROCESSOR_ARCHITECTURE -ne "AMD64" -and $env:PROCESSOR_ARCHITECTURE -ne "ARM64") {
   Write-Output "Install Failed:"
-  Write-Output "MoonBit for Windows is currently only available for x86 64-bit Windows.`n"
+  Write-Output "MoonBit for Windows is currently only available for x86 64-bit && ARM 64-bit Windows.`n"
   exit 1
 }
 

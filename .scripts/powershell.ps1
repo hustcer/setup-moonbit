@@ -35,6 +35,8 @@ if ($env:MOONBIT_INSTALL_DEV) {
 
 $CoreUri = "$CLI_MOONBIT/cores/core-$Version.zip"
 
+$oldPreference = $ProgressPreference
+$ProgressPreference = 'SilentlyContinue'
 
 try {
   if (-not (Test-Path -Path $MoonHome -PathType Container)) {
@@ -77,8 +79,11 @@ try {
   $env:PATH = $OldPath
 
   Pop-Location
+
+  $ProgressPreference = $oldPreference
 }
 catch {
+  $ProgressPreference = $oldPreference
   Write-Output "Install Failed:"
   Write-Output $_.Exception.Message
   exit 1

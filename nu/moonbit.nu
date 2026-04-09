@@ -70,26 +70,89 @@ def fetch-core [ version: string ] {
 # installed TCC can't discover system headers, causing the native target build to fail.
 def patch-runtime-windows-header [libDir: string] {
   let runtime = [$libDir runtime.c] | path join
-  if not ($runtime | path exists) { return }
-  let content = open $runtime
-  let old = "#ifdef _WIN32\n#include <windows.h>\n#endif"
-  if ($content | str contains $old) {
-    let new = [
-      '#ifdef _WIN32'
-      '#ifndef MOONBIT_NATIVE_NO_SYS_HEADER'
-      '#include <windows.h>'
-      '#else'
-      '#define CP_UTF8 65001'
-      'unsigned int GetConsoleOutputCP(void);'
-      'int SetConsoleOutputCP(unsigned int);'
-      '#endif'
-      '#endif'
-    ] | str join "\n"
-    $content | str replace $old $new | save --force $runtime
-    print $'(ansi g)Patched runtime.c: guarded <windows.h> behind MOONBIT_NATIVE_NO_SYS_HEADER(ansi reset)'
+  if not ($runtime | path exists) {
+    print $'(ansi y)runtime.c not found, skip patch: ($runtime)(ansi reset)'
+    return
+  }
+  let replacement = [
+    '#ifdef _WIN32'
+    '#ifndef MOONBIT_NATIVE_NO_SYS_HEADER'
+    '#include <windows.h>'
+    '#else'
+    '#define CP_UTF8 65001'
+    'unsigned int GetConsoleOutputCP(void);'
+    'int SetConsoleOutputCP(unsigned int);'
+    '#endif'
+    ''
+    '#ifdef _MSC_VER'
+    '#include <dbghelp.h>'
+    '#pragma comment(lib, "Kernel32.lib")'
+    '#pragma comment(lib, "DbgHelp.lib")'
+    '#endif'
+  ] | str join "\n"
+
+  let content = open --raw $runtime
+  if ($content | str contains $replacement) {
+    print $'(ansi y)runtime.c already patched, skip: ($runtime)(ansi reset)'
+    return
+  }
+
+  let patched = (
+    $content
+    | str replace --regex '(?ms)#ifdef _WIN32\s*#include <windows\.h>\s*(#ifdef _MSC_VER\s*#include <dbghelp\.h>\s*#pragma comment\(lib, "Kernel32\.lib"\)\s*#pragma comment\(lib, "DbgHelp\.lib"\)\s*#endif)?' $replacement
+  )
+
+  if $patched == $content {
+    print $'(ansi r)Failed to patch runtime.c: unsupported Windows header block format in ($runtime)(ansi reset)'
+    return
+  }
+
+  $patched | save --force $runtime
+  print $'(ansi g)Patched runtime.c: guarded <windows.h> behind MOONBIT_NATIVE_NO_SYS_HEADER(ansi reset)'
+}
+
+
+def windows-native-build-toolchain-status [] {
+  let compiler = if (is-installed 'cl') {
+    'cl'
+  } else if (is-installed 'gcc') {
+    'gcc'
+  } else if (is-installed 'clang') {
+    'clang'
+  } else if (is-installed 'cc') {
+    'cc'
+  } else {
+    ''
+  }
+  {
+    compiler: $compiler,
+    has_msvc: ($compiler == 'cl'),
   }
 }
 
+def print-windows-native-build-hint [] {
+  if not (windows?) { return }
+  let status = windows-native-build-toolchain-status
+  if $status.has_msvc { return }
+
+  print $'(char nl)(ansi y)Windows native build hint(ansi reset)'; hr-line --color y
+  print 'MoonBit can fall back to bundled tcc on Windows, but some native packages still require MSVC (`cl.exe`).'
+  print 'The `--patch-runtime` option only patches MoonBit runtime.c; it does not replace the Windows SDK or MSVC toolchain.'
+  if ($status.compiler | is-empty) {
+    print 'Current shell does not see `cl.exe`, `gcc`, `clang`, or `cc`, so `moon build --target native` may fail with missing-header errors from bundled tcc.'
+  } else {
+    print $'Current shell sees (ansi y)($status.compiler)(ansi reset), but some MoonBit native dependencies on Windows still require (ansi g)MSVC / cl.exe(ansi reset).'
+  }
+  print 'Minimal Visual Studio Build Tools install to save disk space:'
+  print '  1. Install `Visual Studio Build Tools 2022`.'
+  print '  2. Select `Desktop development with C++`.'
+  print '  3. Keep only required components, plus `MSVC Build Tools for x64/x86 (Latest)` and one Windows SDK such as `Windows 11 SDK (10.0.26100)`.'
+  print 'Recommended component IDs for unattended install:'
+  print '  - `Microsoft.VisualStudio.Workload.VCTools`'
+  print '  - `Microsoft.VisualStudio.Component.VC.Tools.x86.x64`'
+  print '  - `Microsoft.VisualStudio.Component.Windows11SDK.26100`'
+  print 'After installation, reopen `Developer PowerShell for VS 2022` or run `VsDevCmd.bat`, then retry `moon build --target native`.'
+}
 # Download moonbit binary files to local
 export def 'setup moonbit' [
   version?,             # The version of moonbit toolchain to setup, and `latest` by default
@@ -171,6 +234,10 @@ export def 'setup moonbit' [
   }
   if ('PATH' in $env) {
     $env.PATH = ($env.PATH | split row (char esep) | prepend $MOONBIT_BIN_DIR)
+  }
+
+  if (windows?) {
+    print-windows-native-build-hint
   }
 
   if $setup_core {

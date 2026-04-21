@@ -90,6 +90,8 @@ case $(uname -ms) in
 'Linux x86_64')
     target=linux-x86_64
     ;;
+'Linux aarch64')
+    target=linux-aarch64
 esac
 
 if [[ -z $target ]]; then

@@ -1,6 +1,17 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.20] - 2026-04-21
+
+### Features
+
+- Add ubuntu-22.04-arm runner support (#46)
+
+### Deps
+
+- Upgrade Nu to 0.111.0
+- Upgrade Nu to 0.112.2
+
 ## [1.19] - 2026-02-10
 
 ### Bug Fixes

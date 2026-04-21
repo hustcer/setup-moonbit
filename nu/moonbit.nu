@@ -23,6 +23,7 @@ export const HTTP_HEADERS = [User-Agent curl/8.9]
 const VALID_VERSION_TAG = [latest, pre-release, nightly]
 const ARCH_TARGET_MAP = {
   linux_x86_64: 'linux-x86_64',
+  linux_aarch64: 'linux-aarch64',
   macos_x86_64: 'darwin-x86_64',
   macos_aarch64: 'darwin-aarch64',
   windows_x86_64: 'windows-x86_64',

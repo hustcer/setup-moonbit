@@ -74,3 +74,22 @@ jobs:
       - name: Check Moonbit Version
         run: |
           moon version --all
+
+  # Regression test for #107: ${{ github.action_path }} expands to a host-side
+  # path that doesn't exist inside container jobs, so the action must resolve
+  # its files via $env.GITHUB_ACTION_PATH at runtime.
+  setup-moonbit-in-container:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:24.04
+    name: Setup MoonBit in Container
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Moonbit
+        uses: hustcer/setup-moonbit@develop
+
+      - name: Check Moonbit Version
+        run: |
+          moon version --all

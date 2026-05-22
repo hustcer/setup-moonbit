@@ -2,7 +2,7 @@
 
 [中文说明](README.zh-CN.md)
 
-[![Setup-Moonbit@Dev](https://github.com/hustcer/setup-moonbit/actions/workflows/basic.yml/badge.svg)](https://github.com/hustcer/setup-moonbit/actions/workflows/basic.yml)
+[![Setup-Moonbit@Dev](https://github.com/hustcer/setup-moonbit/actions/workflows/ci.yml/badge.svg)](https://github.com/hustcer/setup-moonbit/actions/workflows/ci.yml)
 [![Daily Checking](https://github.com/hustcer/setup-moonbit/actions/workflows/daily.yml/badge.svg)](https://github.com/hustcer/setup-moonbit/actions/workflows/daily.yml)
 
 This GitHub Action will setup a [MoonBit](https://www.moonbitlang.com/) environment for you. It should work on Github `macOS`, `Ubuntu`, and `Windows` runners.

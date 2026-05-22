@@ -1,6 +1,6 @@
 # Setup MoonBit Action
 
-[![Setup-Moonbit@Dev](https://github.com/hustcer/setup-moonbit/actions/workflows/basic.yml/badge.svg)](https://github.com/hustcer/setup-moonbit/actions/workflows/basic.yml)
+[![Setup-Moonbit@Dev](https://github.com/hustcer/setup-moonbit/actions/workflows/ci.yml/badge.svg)](https://github.com/hustcer/setup-moonbit/actions/workflows/ci.yml)
 
 本 GitHub Action 将为你配置一个 [MoonBit](https://www.moonbitlang.com/) 开发环境。适用于 Github `macOS`、`Ubuntu` 和 `Windows` 工作流运行时镑像。
 

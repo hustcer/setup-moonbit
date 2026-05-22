@@ -9,7 +9,13 @@ on:
   workflow_dispatch:
   push:
     branches:
+      - main
       - develop
+  pull_request_target:
+    types:
+      - opened      # Triggers when a PR is opened
+      - reopened    # Triggers when a PR is reopened
+      - synchronize # Triggers when a commit is pushed to the PR
 
     paths-ignore:
       - '**.md'
@@ -27,7 +33,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup Moonbit
-        uses: hustcer/setup-moonbit@develop
+        uses: hustcer/setup-moonbit@main
 
       - name: Check Moonbit Version
         run: |
@@ -45,7 +51,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup Moonbit with Version
-        uses: hustcer/setup-moonbit@develop
+        uses: hustcer/setup-moonbit@main
         with:
           setup-core: false
           version: 0.9.0+9a9aff28a
@@ -66,7 +72,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup Moonbit Nightly
-        uses: hustcer/setup-moonbit@develop
+        uses: hustcer/setup-moonbit@main
         with:
           version: nightly
           core-version: nightly

@@ -39,9 +39,10 @@ runs:
     - name: Setup MoonBit
       shell: nu {0}
       run: |
-        use ${{ github.action_path }}/nu/moonbit.nu *
+        # ${{ github.action_path }} expands to a host-side path that
+        # doesn't exist inside container jobs. Use $env.GITHUB_ACTION_PATH.
         let version = '${{inputs.version}}'
         let setup_core = '${{inputs.setup-core}}' | into bool
         let core_version = '${{inputs.core-version}}'
-        setup moonbit $version --setup-core=$setup_core --core-version=$core_version
+        ^nu $"($env.GITHUB_ACTION_PATH)/nu/moonbit.nu" $version $"--setup-core=($setup_core)" $"--core-version=($core_version)"
 

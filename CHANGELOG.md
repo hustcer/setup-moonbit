@@ -1,6 +1,26 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.22] - 2026-05-22
+
+### Bug Fixes
+
+- Resolve action path at runtime so container jobs work (#107)
+
+### CI
+
+- Install CA certificates in container test job
+- Use pull_request and local action ref to actually test PR changes (#109)
+
+### Tests
+
+- Add container job test case for #107 (#108)
+
+### Miscellaneous Tasks
+
+- Use Official DeepSeek V4 pro model for code review
+
+
 ## [1.21] - 2026-05-22
 
 ### Bug Fixes

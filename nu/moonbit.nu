@@ -50,14 +50,16 @@ def fetch-core [ version: string ] {
   if ($version not-in $VALID_VERSION_TAG) and not (is-semver $version) {
     print $'(ansi r)Invalid version: ($version)(ansi reset)'; exit 2
   }
-  let version = $version | str replace + %2B
-  let suffix = if (windows?) { $'($version).zip' } else { $'($version).tar.gz' }
-  let assets = $'($CLI_HOST)/cores/core-($suffix)'
+  let encoded_version = $version | str replace + %2B
+  let remote_suffix = if (windows?) { $'($encoded_version).zip' } else { $'($encoded_version).tar.gz' }
+  let local_suffix = if (windows?) { $'($version).zip' } else { $'($version).tar.gz' }
+  let assets = $'($CLI_HOST)/cores/core-($remote_suffix)'
+  let local_file = $'core-($local_suffix)'
   print $'Fetch core assets from (ansi g)($assets)(ansi reset)'
   if (is-installed curl) {
-    curl -O -L $assets
+    curl -o $local_file -L $assets
   } else {
-    http get -H $HTTP_HEADERS $assets | save --progress --force $'core-($suffix)'
+    http get -H $HTTP_HEADERS $assets | save --progress --force $local_file
   }
 }
 

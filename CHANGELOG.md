@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.21] - 2026-05-22
+
+### Bug Fixes
+
+- Fix core bundle fetching by separating remote URL suffix from local file name
+
+
 ## [1.20] - 2026-04-21
 
 ### Features

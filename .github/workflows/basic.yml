@@ -84,6 +84,13 @@ jobs:
       image: ubuntu:24.04
     name: Setup MoonBit in Container
     steps:
+      # The bare ubuntu image has no CA certificates, so rustls-backed HTTPS
+      # in nu's `http get` fails. Install them before fetching anything.
+      - name: Install CA certificates
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates
+
       - name: Checkout
         uses: actions/checkout@v6
 

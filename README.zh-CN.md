@@ -36,9 +36,9 @@ steps:
 
 | 参数名       | 类型     | 描述                                                                                                                  |
 | ------------ | -------- | --------------------------------------------------------------------------------------------------------------------- |
-| `version`    | `string` | 可选，合法的 Moonbit 工具链版本，比如：`0.9.0+9a9aff28a`、`latest`、`pre-release` 或者 `nightly`。默认为 `latest` 或环境变量 `MOONBIT_INSTALL_VERSION` 的值 |
+| `version`    | `string` | 可选，合法的 Moonbit 工具链版本，比如：`0.9.2+bbe2b338f`、`latest`、`pre-release` 或者 `nightly`。默认为 `latest` 或环境变量 `MOONBIT_INSTALL_VERSION` 的值 |
 | `setup-core` | `bool`   | 可选，设置为 `true` 则下载并打包 Moonbit Core，`false` 则跳过。默认为 `true`                                                |
-| `core-version` | `string` | 可选，合法的 Moonbit Core 版本，比如：`0.9.0+9a9aff28a`、`latest`、`pre-release` 或者 `nightly`。默认为 `latest` |
+| `core-version` | `string` | 可选，合法的 Moonbit Core 版本，比如：`0.9.2+bbe2b338f`、`latest`、`pre-release` 或者 `nightly`。默认为 `latest` |
 
 ## 许可
 

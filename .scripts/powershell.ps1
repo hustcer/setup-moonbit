@@ -52,13 +52,6 @@ try {
   }
   Expand-Archive "${HOME}\moonbit.zip" -DestinationPath $MoonHome -Force
   Remove-Item -Force "${HOME}\moonbit.zip"
-  if (Test-Path -Path "$MoonHome\bin\internal\moon-pilot\lib\prompt\moonbitlang.mbt.md") {
-    if (Test-Path -Path "$MoonHome\AGENTS.md") {
-      Remove-Item -Force -Path "$MoonHome\AGENTS.md"
-    }
-    # SymbolicLink on Windows requires elevated privileges, so use HardLink instead
-    New-Item -ItemType HardLink -Path "${MoonHome}\AGENTS.md" -Value "$MoonHome\bin\internal\moon-pilot\lib\prompt\moonbitlang.mbt.md"
-  }
 
   Write-Output "Downloading core ..."
   if (Test-Path -Path $MoonLib\core) {

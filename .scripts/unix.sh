@@ -137,15 +137,6 @@ rm -rf "${moon_home:?}/include" ||
 tar xf "$moonbit_dest" --directory="$moon_home" ||
   error "Failed to extract moonbit to \"$moon_home\""
 
-if [[ -f "$moon_home/bin/internal/moon-pilot/lib/prompt/moonbitlang.mbt.md" ]]; then
-  if [[ -f "$moon_home/AGENTS.md" ]]; then
-    rm -f "$moon_home/AGENTS.md" ||
-      error "Failed to remove existing $moon_home/AGENTS.md"
-  fi
-  ln -s "$moon_home/bin/internal/moon-pilot/lib/prompt/moonbitlang.mbt.md" "$moon_home/AGENTS.md" ||
-    error "Failed to create symlink for $moon_home/bin/internal/moon-pilot/lib/prompt/moonbitlang.mbt.md"
-fi
-
 rm -f "$moonbit_dest" ||
   error "Failed to remove \"$moonbit_dest\""
 

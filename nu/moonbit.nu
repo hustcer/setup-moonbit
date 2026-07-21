@@ -146,18 +146,14 @@ export def 'setup moonbit' [
     rm moonbit*.tar.gz
   }
 
-  # Link AGENTS.md to moon-pilot prompt if available
-  let agents_src = $"($MOONBIT_HOME)/bin/internal/moon-pilot/lib/prompt/moonbitlang.mbt.md"
-  if ($agents_src | path exists) {
-    let agents_dst = $"($MOONBIT_HOME)/AGENTS.md"
-    if ($agents_dst | path exists) { rm -f $agents_dst }
-    if (windows?) {
-      let agents_src_win = $"($MOONBIT_HOME)\\bin\\internal\\moon-pilot\\lib\\prompt\\moonbitlang.mbt.md"
-      let agents_dst_win = $"($MOONBIT_HOME)\\AGENTS.md"
-      try { ^cmd /c mklink /H $agents_dst_win $agents_src_win } catch { print $"(ansi r)Failed to create hard link for ($agents_src_win)(ansi reset)" }
-    } else {
-      try { ^ln -sf $agents_src $agents_dst } catch { print $"(ansi r)Failed to create symlink for ($agents_src)(ansi reset)" }
-    }
+  # Link moonx to moon, matching the behavior of the official install scripts
+  if (windows?) {
+    let moonx_exe = $"($MOONBIT_BIN_DIR)\\moonx.exe"
+    if ($moonx_exe | path exists) { rm -f $moonx_exe }
+    # SymbolicLink on Windows requires elevated privileges, so use HardLink instead
+    try { ^cmd /c mklink /H $moonx_exe $"($MOONBIT_BIN_DIR)\\moon.exe" } catch { print $"(ansi r)Failed to create hard link for ($moonx_exe)(ansi reset)" }
+  } else {
+    try { ^ln -sfn moon $"($MOONBIT_BIN_DIR)/moonx" } catch { print $"(ansi r)Failed to create symlink for ($MOONBIT_BIN_DIR)/moonx(ansi reset)" }
   }
 
   print 'OS Info:'; print $nu.os-info; hr-line

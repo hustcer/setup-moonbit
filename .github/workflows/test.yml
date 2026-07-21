@@ -23,7 +23,7 @@ jobs:
     name: Setup MoonBit@${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Moonbit
         uses: hustcer/setup-moonbit@v1

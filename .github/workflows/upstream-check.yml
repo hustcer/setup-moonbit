@@ -20,7 +20,7 @@ jobs:
     name: Upstream Check
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           ref: feature/latest
@@ -28,7 +28,7 @@ jobs:
       - name: Setup Nushell
         uses: hustcer/setup-nu@v3
         with:
-          version: 0.112.2
+          version: '*'
 
       - name: Create PR if Upstream was Updated
         shell: nu {0}
@@ -41,7 +41,7 @@ jobs:
           http get https://cli.moonbitlang.com/install/unix.sh | save -rf unix.sh
           http get https://cli.moonbitlang.com/install/powershell.ps1 | save -rf powershell.ps1
           let statusCheck = (git status --porcelain)
-          if ($statusCheck | is-empty) { print $'(ansi g)No changes detected. Bye...(ansi reset)'; return }
+          if ($statusCheck | is-empty) { print $'(ansi g)No changes detected. Bye...(ansi rst)'; return }
           # We can't push if no user name and email are configured
           git config user.name 'hustcer'
           git config user.email 'hustcer@outlook.com'

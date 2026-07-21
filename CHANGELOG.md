@@ -1,6 +1,29 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.23] - 2026-07-21
+
+### Breaking Changes
+
+- Drop macOS Intel (`darwin-x86_64`) support, which has been removed by the official install scripts (#116)
+
+### Features
+
+- Sync `moonbit.nu` with the latest official install scripts: create `moonx` link for `moon` and remove `AGENTS.md` linking (#114)
+- Support `MOONBIT_INSTALL_DEV` env var to install dev channel binaries (#116)
+- Support ARM64 Windows by installing the x86_64 build via emulation (#117)
+- Print binary verification and shell completion notes after installation (#117)
+
+### Bug Fixes
+
+- Fail fast on download HTTP errors by adding `-f` to curl (#116)
+- Exit with non-zero code when core bundling fails instead of continuing silently (#116)
+
+### Deps
+
+- Upgrade hustcer/setup-nu to v3.25 & Nu to 0.113.1
+- Upgrade actions/checkout to v7 (#115)
+
 ## [1.22] - 2026-05-22
 
 ### Bug Fixes

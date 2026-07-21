@@ -28,7 +28,7 @@ jobs:
     name: Setup MoonBit@${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Moonbit
         uses: ./
@@ -46,7 +46,7 @@ jobs:
     name: Setup MoonBit with Version@${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Moonbit with Version
         uses: ./
@@ -67,7 +67,7 @@ jobs:
     name: Setup MoonBit Nightly@${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Moonbit Nightly
         uses: ./
@@ -96,7 +96,7 @@ jobs:
           apt-get install -y --no-install-recommends ca-certificates
 
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Moonbit
         uses: ./

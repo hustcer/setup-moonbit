@@ -37,7 +37,7 @@ export-env {
 def fetch-release [ version: string, archive: string ] {
   let version = $version | str replace + %2B
   let assets = $'($CLI_HOST)/binaries/($version)/($archive)'
-  print $'Fetch binaries from (ansi g)($assets)(ansi reset)'
+  print $'Fetch binaries from (ansi g)($assets)(ansi rst)'
   if (is-installed curl) {
     curl -O -L $assets
   } else {
@@ -48,14 +48,14 @@ def fetch-release [ version: string, archive: string ] {
 # Download moonbit core from CLI_HOST with curl or `http get`
 def fetch-core [ version: string ] {
   if ($version not-in $VALID_VERSION_TAG) and not (is-semver $version) {
-    print $'(ansi r)Invalid version: ($version)(ansi reset)'; exit 2
+    print $'(ansi r)Invalid version: ($version)(ansi rst)'; exit 2
   }
   let encoded_version = $version | str replace + %2B
   let remote_suffix = if (windows?) { $'($encoded_version).zip' } else { $'($encoded_version).tar.gz' }
   let local_suffix = if (windows?) { $'($version).zip' } else { $'($version).tar.gz' }
   let assets = $'($CLI_HOST)/cores/core-($remote_suffix)'
   let local_file = $'core-($local_suffix)'
-  print $'Fetch core assets from (ansi g)($assets)(ansi reset)'
+  print $'Fetch core assets from (ansi g)($assets)(ansi rst)'
   if (is-installed curl) {
     curl -o $local_file -L $assets
   } else {
@@ -86,7 +86,7 @@ def patch-runtime-windows-header [libDir: string] {
       '#endif'
     ] | str join "\n"
     $content | str replace $old $new | save --force $runtime
-    print $'(ansi g)Patched runtime.c: guarded <windows.h> behind MOONBIT_NATIVE_NO_SYS_HEADER(ansi reset)'
+    print $'(ansi g)Patched runtime.c: guarded <windows.h> behind MOONBIT_NATIVE_NO_SYS_HEADER(ansi rst)'
   }
 }
 
@@ -99,7 +99,7 @@ export def 'setup moonbit' [
 ] {
   let version = $version | default $env.MOONBIT_INSTALL_VERSION? | default 'latest'
   if ($version not-in $VALID_VERSION_TAG) and not (is-semver $version) {
-    print $'(ansi r)Invalid version: ($version)(ansi reset)'; exit 2
+    print $'(ansi r)Invalid version: ($version)(ansi rst)'; exit 2
   }
   let MOONBIT_HOME = $env.MOONBIT_HOME? | default ([$nu.home-dir .moon] | path join)
   let MOONBIT_BIN_DIR = [$MOONBIT_HOME bin] | path join
@@ -113,8 +113,8 @@ export def 'setup moonbit' [
   let archive = $ARCH_TARGET_MAP | get -o $OS_INFO
   if ($archive | is-empty) { print $'Unsupported Platform: ($OS_INFO)'; exit 2 }
 
-  print $'(char nl)Setup moonbit toolchain of version: (ansi g)($version)(ansi reset)'; hr-line
-  print $'Current moon home: (ansi g)($MOONBIT_HOME)(ansi reset)'
+  print $'(char nl)Setup moonbit toolchain of version: (ansi g)($version)(ansi rst)'; hr-line
+  print $'Current moon home: (ansi g)($MOONBIT_HOME)(ansi rst)'
 
   # Clean up old lib and include directories before extraction to
   # avoid stale files, matching the behavior of the official install scripts
@@ -142,7 +142,7 @@ export def 'setup moonbit' [
       | get name
       | where { ($in | path basename) not-in $IGNORE }
       | each { chmod +x $in }
-    try { chmod +x $'($MOONBIT_BIN_DIR)/internal/tcc' } catch { print $'(ansi r)Failed to make tcc executable(ansi reset)' }
+    try { chmod +x $'($MOONBIT_BIN_DIR)/internal/tcc' } catch { print $'(ansi r)Failed to make tcc executable(ansi rst)' }
     rm moonbit*.tar.gz
   }
 
@@ -151,9 +151,9 @@ export def 'setup moonbit' [
     let moonx_exe = $"($MOONBIT_BIN_DIR)\\moonx.exe"
     if ($moonx_exe | path exists) { rm -f $moonx_exe }
     # SymbolicLink on Windows requires elevated privileges, so use HardLink instead
-    try { ^cmd /c mklink /H $moonx_exe $"($MOONBIT_BIN_DIR)\\moon.exe" } catch { print $"(ansi r)Failed to create hard link for ($moonx_exe)(ansi reset)" }
+    try { ^cmd /c mklink /H $moonx_exe $"($MOONBIT_BIN_DIR)\\moon.exe" } catch { print $"(ansi r)Failed to create hard link for ($moonx_exe)(ansi rst)" }
   } else {
-    try { ^ln -sfn moon $"($MOONBIT_BIN_DIR)/moonx" } catch { print $"(ansi r)Failed to create symlink for ($MOONBIT_BIN_DIR)/moonx(ansi reset)" }
+    try { ^ln -sfn moon $"($MOONBIT_BIN_DIR)/moonx" } catch { print $"(ansi r)Failed to create symlink for ($MOONBIT_BIN_DIR)/moonx(ansi rst)" }
   }
 
   print 'OS Info:'; print $nu.os-info; hr-line
@@ -170,7 +170,7 @@ export def 'setup moonbit' [
   }
 
   if $setup_core {
-    print $'(char nl)Setup moonbit core of version: (ansi g)($core_version)(ansi reset)'; hr-line
+    print $'(char nl)Setup moonbit core of version: (ansi g)($core_version)(ansi rst)'; hr-line
     cd $MOONBIT_LIB_DIR; rm -rf ./core/*
 
     fetch-core $core_version
@@ -187,23 +187,23 @@ export def 'setup moonbit' [
 # Bundle moonbit core
 def bundle-core [coreDir: string, version: string] {
   let moonBin = if (windows?) { 'moon.exe' } else { 'moon' }
-  print $'(char nl)Bundle moonbit core(ansi reset)'; hr-line
+  print $'(char nl)Bundle moonbit core(ansi rst)'; hr-line
   try {
     ^$moonBin -C $coreDir bundle --warn-list -a --all
   } catch {
-    print $'(ansi r)Failed to bundle core(ansi reset)'
+    print $'(ansi r)Failed to bundle core(ansi rst)'
   }
   try {
     ^$moonBin -C $coreDir bundle --warn-list -a --target wasm-gc --quiet
   } catch {
-    print $'(ansi r)Failed to bundle core to wasm-gc(ansi reset)'
+    print $'(ansi r)Failed to bundle core to wasm-gc(ansi rst)'
   }
   if $version != 'nightly' or (windows?) { return }
-  print $'(ansi g)Bundle core for llvm backend(ansi reset)'
+  print $'(ansi g)Bundle core for llvm backend(ansi rst)'
   try {
     ^$moonBin -C $coreDir bundle --warn-list -a --target llvm
   } catch {
-    print $'(ansi r)Failed to bundle core for llvm backend(ansi reset)'
+    print $'(ansi r)Failed to bundle core for llvm backend(ansi rst)'
   }
 }
 
@@ -245,7 +245,7 @@ export def hr-line [
     0..<$times | reduce -f '' { |i, acc| $unit + $acc }
   }
 
-  print $'(ansi $color)(build-line $width)(if $with_arrow {'>'})(ansi reset)'
+  print $'(ansi $color)(build-line $width)(if $with_arrow {'>'})(ansi rst)'
   if $blank_line { char nl }
 }
 

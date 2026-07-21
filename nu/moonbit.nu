@@ -24,7 +24,6 @@ const VALID_VERSION_TAG = [latest, pre-release, nightly]
 const ARCH_TARGET_MAP = {
   linux_x86_64: 'linux-x86_64',
   linux_aarch64: 'linux-aarch64',
-  macos_x86_64: 'darwin-x86_64',
   macos_aarch64: 'darwin-aarch64',
   windows_x86_64: 'windows-x86_64',
 }
@@ -39,7 +38,7 @@ def fetch-release [ version: string, archive: string ] {
   let assets = $'($CLI_HOST)/binaries/($version)/($archive)'
   print $'Fetch binaries from (ansi g)($assets)(ansi rst)'
   if (is-installed curl) {
-    curl -O -L $assets
+    curl -f -O -L $assets
   } else {
     http get -H $HTTP_HEADERS $assets | save --progress --force $archive
   }
@@ -57,7 +56,7 @@ def fetch-core [ version: string ] {
   let local_file = $'core-($local_suffix)'
   print $'Fetch core assets from (ansi g)($assets)(ansi rst)'
   if (is-installed curl) {
-    curl -o $local_file -L $assets
+    curl -f -o $local_file -L $assets
   } else {
     http get -H $HTTP_HEADERS $assets | save --progress --force $local_file
   }
@@ -112,6 +111,9 @@ export def 'setup moonbit' [
   let OS_INFO = $'($nu.os-info.name)_($nu.os-info.arch)'
   let archive = $ARCH_TARGET_MAP | get -o $OS_INFO
   if ($archive | is-empty) { print $'Unsupported Platform: ($OS_INFO)'; exit 2 }
+  # Download dev channel binaries (e.g. moonbit-darwin-aarch64-dev.tar.gz) when
+  # MOONBIT_INSTALL_DEV is set to a non-empty value, matching the official install scripts
+  let archive = if ($env.MOONBIT_INSTALL_DEV? | is-empty) { $archive } else { $'($archive)-dev' }
 
   print $'(char nl)Setup moonbit toolchain of version: (ansi g)($version)(ansi rst)'; hr-line
   print $'Current moon home: (ansi g)($MOONBIT_HOME)(ansi rst)'
@@ -191,19 +193,19 @@ def bundle-core [coreDir: string, version: string] {
   try {
     ^$moonBin -C $coreDir bundle --warn-list -a --all
   } catch {
-    print $'(ansi r)Failed to bundle core(ansi rst)'
+    print $'(ansi r)Failed to bundle core(ansi rst)'; exit 1
   }
   try {
     ^$moonBin -C $coreDir bundle --warn-list -a --target wasm-gc --quiet
   } catch {
-    print $'(ansi r)Failed to bundle core to wasm-gc(ansi rst)'
+    print $'(ansi r)Failed to bundle core to wasm-gc(ansi rst)'; exit 1
   }
   if $version != 'nightly' or (windows?) { return }
   print $'(ansi g)Bundle core for llvm backend(ansi rst)'
   try {
     ^$moonBin -C $coreDir bundle --warn-list -a --target llvm
   } catch {
-    print $'(ansi r)Failed to bundle core for llvm backend(ansi rst)'
+    print $'(ansi r)Failed to bundle core for llvm backend(ansi rst)'; exit 1
   }
 }
 

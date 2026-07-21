@@ -26,6 +26,8 @@ const ARCH_TARGET_MAP = {
   linux_aarch64: 'linux-aarch64',
   macos_aarch64: 'darwin-aarch64',
   windows_x86_64: 'windows-x86_64',
+  # ARM64 Windows runs the x86_64 build via emulation, matching the official install scripts
+  windows_aarch64: 'windows-x86_64',
 }
 
 export-env {
@@ -184,6 +186,10 @@ export def 'setup moonbit' [
     }
     bundle-core $coreDir $version
   }
+
+  print $'(char nl)(ansi g)moonbit was installed successfully to ($MOONBIT_HOME)(ansi rst)'
+  print 'To verify the downloaded binaries, check https://www.moonbitlang.com/download#verifying-binaries for instructions.'
+  print "To know how to add shell completions, run 'moon shell-completion --help'"
 }
 
 # Bundle moonbit core

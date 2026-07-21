@@ -137,6 +137,9 @@ rm -rf "${moon_home:?}/include" ||
 tar xf "$moonbit_dest" --directory="$moon_home" ||
   error "Failed to extract moonbit to \"$moon_home\""
 
+ln -sfn moon "$bin_dir/moonx" ||
+  error "Failed to link \"$bin_dir/moonx\" to \"$exe\""
+
 rm -f "$moonbit_dest" ||
   error "Failed to remove \"$moonbit_dest\""
 

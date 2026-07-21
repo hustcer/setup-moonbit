@@ -24,6 +24,8 @@ if ($env:MOON_HOME) {
 
 $MoonBin = "${MoonHome}\bin"
 $MoonLib = "${MoonHome}\lib"
+$MoonExe = "${MoonBin}\moon.exe"
+$MoonxExe = "${MoonBin}\moonx.exe"
 
 $CLI_MOONBIT = "https://cli.moonbitlang.com"
 
@@ -51,6 +53,10 @@ try {
     Remove-Item -Force -Recurse "$MoonHome\include"
   }
   Expand-Archive "${HOME}\moonbit.zip" -DestinationPath $MoonHome -Force
+  if (Test-Path -LiteralPath $MoonxExe) {
+    Remove-Item -Force -LiteralPath $MoonxExe
+  }
+  New-Item -ItemType HardLink -Path $MoonxExe -Value $MoonExe | Out-Null
   Remove-Item -Force "${HOME}\moonbit.zip"
 
   Write-Output "Downloading core ..."

@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.25] - 2026-09-04
+
+### Deps
+
+- Upgrade Nu to 0.114.1
+- Upgrade hustcer/setup-nu to v3.27 and Nu to 0.115
+- Upgrade Nu to 0.115.1
+
 ## [1.23] - 2026-07-21
 
 ### Breaking Changes

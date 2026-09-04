@@ -52,7 +52,7 @@ jobs:
         uses: ./
         with:
           setup-core: false
-          version: 0.10.3+16975d007
+          version: 0.10.11+6ff76a5f9
 
       - name: Check Moonbit Version
         run: |

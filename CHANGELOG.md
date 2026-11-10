@@ -1,6 +1,17 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.26] - 2026-11-10
+
+### Miscellaneous Tasks
+
+- Try to fix ci error
+
+### Deps
+
+- Upgrade hustcer/setup-nu & Nu to latest version
+- Upgrade nu to 0.117.0 & hustcer/setup-nu
+
 ## [1.25] - 2026-09-04
 
 ### Deps

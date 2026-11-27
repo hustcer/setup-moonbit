@@ -15,6 +15,8 @@
 #    setup moonbit 0.1.20240910+3af041b9a
 
 const CLI_HOST = 'https://cli.moonbitlang.com'
+const WINDOWS_PUBLISHER = path self publish-windows.ps1
+const TOOLCHAIN_DIRS = [bin lib include]
 
 # It takes longer to respond to requests made with unknown/rare user agents.
 # When make http post pretend to be curl, it gets a response just as quickly as curl.
@@ -61,6 +63,16 @@ def require-success [message: string]: record -> nothing {
       error make {msg: $message}
     }
     error make {msg: $message, help: $details}
+  }
+}
+
+def toolchain-env [root: string, bin_dir: string, suffix: string]: nothing -> record {
+  {
+    MOON_HOME: $root
+    MOON_TOOLCHAIN_ROOT: $root
+    MOONC_OVERRIDE: ([$bin_dir $'moonc($suffix)'] | path join)
+    MOONRUN_OVERRIDE: ([$bin_dir $'moonrun($suffix)'] | path join)
+    PATH: ($env.PATH | prepend $bin_dir)
   }
 }
 
@@ -128,7 +140,12 @@ export def 'setup moonbit' [
     install-toolchain $staged $backup $MOONBIT_HOME
   } finally {
     # Retain any original files that could not be restored.
-    if not ($backup | path exists) or (ls -a $backup | is-empty) { rm --permanent -rf $work_dir }
+    let keep_backup = if (windows?) {
+      [$backup .publish-pending] | path join | path exists
+    } else {
+      ($backup | path exists) and (ls -a $backup | is-not-empty)
+    }
+    if not $keep_backup { rm --permanent -rf $work_dir }
   }
 
   print 'OS Info:'; print $nu.os-info; hr-line
@@ -142,12 +159,9 @@ export def 'setup moonbit' [
   print 'To verify the downloaded binaries, check https://www.moonbitlang.com/download#verifying-binaries for instructions.'
   print "To know how to add shell completions, run 'moon shell-completion --help'"
 
-  let moon_bin = [$MOONBIT_BIN_DIR (if (windows?) { 'moon.exe' } else { 'moon' })] | path join
-  with-env {
-    MOON_HOME: $MOONBIT_HOME
-    MOON_TOOLCHAIN_ROOT: $MOONBIT_HOME
-    PATH: ($env.PATH | prepend $MOONBIT_BIN_DIR)
-  } {
+  let suffix = if (windows?) { '.exe' } else { '' }
+  let moon_bin = [$MOONBIT_BIN_DIR $'moon($suffix)'] | path join
+  with-env (toolchain-env $MOONBIT_HOME $MOONBIT_BIN_DIR $suffix) {
     print $'(ansi g)Moonbit toolchain version details:(ansi rst)'
     ^$moon_bin version --all
   }
@@ -160,45 +174,63 @@ def prepare-toolchain [
   cd $work_dir
   let bin_dir = [$staged bin] | path join
   let lib_dir = [$staged lib] | path join
-  let moon_bin = [$bin_dir (if (windows?) { 'moon.exe' } else { 'moon' })] | path join
-  let extension = if (windows?) { 'zip' } else { 'tar.gz' }
+  let on_windows = windows?
+  let suffix = if $on_windows { '.exe' } else { '' }
+  let moon_bin = [$bin_dir $'moon($suffix)'] | path join
+  let staged_env = toolchain-env $staged $bin_dir $suffix
+  let extension = if $on_windows { 'zip' } else { 'tar.gz' }
   let archive = $'moonbit-($target).($extension)'
   let encoded_version = $version | str replace + %2B
   fetch-archive $'($CLI_HOST)/binaries/($encoded_version)/($archive)' $archive
   extract-archive $archive $staged
-  if not ($moon_bin | path exists) {
-    error make {msg: $'Moon executable missing from ($archive)'}
+  for name in $TOOLCHAIN_DIRS {
+    if ([$staged $name] | path join | path type) != 'dir' {
+      error make {msg: $'Expected a directory named ($name) in ($archive)'}
+    }
+  }
+  for binary in [$moon_bin $staged_env.MOONC_OVERRIDE $staged_env.MOONRUN_OVERRIDE] {
+    if ($binary | path type) != 'file' {
+      error make {msg: $'Expected an executable file named ($binary | path basename) in ($archive)'}
+    }
   }
 
   # Link moonx to moon, matching the behavior of the official install scripts.
-  if (windows?) {
+  if $on_windows {
     if $patch_runtime { patch-runtime-windows-header $lib_dir }
-    let moonx_exe = [$bin_dir moonx.exe] | path join
-    rm -f $moonx_exe
-    # SymbolicLink on Windows requires elevated privileges, so use HardLink instead.
-    try { ^cmd /c mklink /H $moonx_exe $moon_bin } catch { print $'(ansi r)Failed to create hard link for ($moonx_exe)(ansi rst)' }
+    ^powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $WINDOWS_PUBLISHER -Staged $staged -CreateAlias |
+      complete | require-success 'Failed to create the moonx.exe hard link'
   } else {
     ^chmod +x ...(ls $bin_dir | get name)
     let tcc = [$bin_dir internal tcc] | path join
     if ($tcc | path exists) { ^chmod +x $tcc }
-    try { ^ln -sfn moon ([$bin_dir moonx] | path join) } catch { print $'(ansi r)Failed to create moonx symlink(ansi rst)' }
+    let moonx = [$bin_dir moonx] | path join
+    if ($moonx | path type) == 'dir' {
+      error make {msg: $'Cannot create the moonx symlink over directory ($moonx)'}
+    }
+    ^ln -sfn moon $moonx | complete | require-success 'Failed to create the moonx symlink'
   }
 
+  with-env $staged_env {
+    let version_result = try {
+      ^$moon_bin version --all | complete
+    } catch {|err|
+      error make {msg: 'Failed to start the staged Moon executable', help: $err.msg}
+    }
+    $version_result | require-success 'Failed to run the staged Moon executable'
+  }
+
+  let core_dir = [$lib_dir core] | path join
   if $setup_core {
     print $'(char nl)Setup moonbit core of version: (ansi g)($core_version)(ansi rst)'; hr-line
     let encoded_core_version = $core_version | str replace + %2B
     let core_archive = $'core-($core_version).($extension)'
-    let core_dir = [$lib_dir core] | path join
     fetch-archive $'($CLI_HOST)/cores/core-($encoded_core_version).($extension)' $core_archive
-    mkdir $lib_dir
     rm --permanent -rf $core_dir
     extract-archive $core_archive $lib_dir
-    with-env {
-      MOON_HOME: $staged
-      MOON_TOOLCHAIN_ROOT: $staged
-      MOON_CORE_OVERRIDE: $core_dir
-      PATH: ($env.PATH | prepend $bin_dir)
-    } {
+    if ($core_dir | path type) != 'dir' {
+      error make {msg: $'Expected a core directory in ($core_archive)'}
+    }
+    with-env ($staged_env | insert MOON_CORE_OVERRIDE $core_dir) {
       bundle-core $moon_bin $core_dir $version
     }
   }
@@ -211,7 +243,14 @@ def plan-install [staged: string, install_dir: string, backup: string, replace: 
     let incoming = [$staged $name] | path join
     let installed = [$install_dir $name] | path join
     let previous = [$backup $name] | path join
-    if $name not-in $replace and ($incoming | path type) == 'dir' and ($installed | path type) == 'dir' {
+    let installed_type = $installed | path type | default 'missing'
+    let incoming_is_dir = ($incoming | path type) == 'dir'
+    let installed_is_dir = $installed_type == 'dir'
+    let merge = $name not-in $replace
+    if $merge and $installed_type != 'missing' and $installed_is_dir != $incoming_is_dir {
+      error make {msg: $'Cannot replace ($installed) because only one entry is a directory'}
+    }
+    if $merge and $installed_is_dir {
       # Only replace paths that belong to the release when merging directories such as bin.
       plan-install $incoming $installed $previous
     } else {
@@ -221,17 +260,21 @@ def plan-install [staged: string, install_dir: string, backup: string, replace: 
 }
 
 def install-toolchain [staged: string, backup: string, install_dir: string] {
-  let lock_path = [$install_dir .setup-moonbit-lock] | path join
-  let lock = if (windows?) {
-    with-env {SETUP_MOONBIT_LOCK_PATH: $lock_path} {
-      # Use FileMode::CreateNew for an atomic, literal-path lock without PowerShell wildcard parsing.
-      ^powershell.exe -NoProfile -NonInteractive -Command '$ErrorActionPreference = "Stop"; [IO.File]::Open($env:SETUP_MOONBIT_LOCK_PATH, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None).Dispose()' | complete
-    }
-  } else {
-    ^mkdir -- $lock_path | complete
+  if (windows?) {
+    ^powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $WINDOWS_PUBLISHER -Staged $staged -Backup $backup -InstallDir $install_dir |
+      complete | require-success 'Failed to publish the MoonBit toolchain on Windows'
+    return
   }
+  let lock_path = [$install_dir .setup-moonbit-lock] | path join
+  let lock = ^mkdir -- $lock_path | complete
   $lock | require-success $'Cannot acquire installation lock at ($lock_path). Wait for any other install to finish, or remove this lock if a previous run was interrupted.'
   try {
+    for name in $TOOLCHAIN_DIRS {
+      let live_path = [$install_dir $name] | path join
+      if ($live_path | path type) not-in [null dir] {
+        error make {msg: $'Cannot replace ($live_path) with a directory'}
+      }
+    }
     let entries = plan-install $staged $install_dir $backup [lib include]
     try {
       for entry in $entries {

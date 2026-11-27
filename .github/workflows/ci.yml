@@ -42,6 +42,11 @@ jobs:
         shell: nu {0}
         run: nu --no-config-file nu/tests/update.nu nu/moonbit.nu
 
+      - name: Check staged toolchain updates on Windows
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: ./nu/tests/update-windows.ps1 ./nu/moonbit.nu
+
   setup-moonbit-of-version:
     strategy:
       fail-fast: false

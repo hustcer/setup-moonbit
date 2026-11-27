@@ -18,7 +18,9 @@ words:
 - hustcer
 - rsbuild
 - moonbit
+- moonc
 - moondoc
+- moonrun
 - justfile
 - lefthook
 - linewise
@@ -26,4 +28,14 @@ words:
 - pipefail
 - Infinigence
 - moonbitlang
+- DMOONBIT
+- ifdef
+- ifndef
+- LASTEXITCODE
+- mktemp
+- moonx
+- nuon
+- println
+- rustls
+- winapi
 ignorePaths:

@@ -145,18 +145,16 @@ def official-checksum [url: string]: nothing -> string {
 }
 
 def archive-checksum [path: string]: nothing -> string {
-  # Nushell's hash command currently buffers its entire input.
-  if $nu.os-info.name == 'windows' {
-    with-env { MOONBIT_ARCHIVE_TO_HASH: $path } {
-      ^powershell.exe -NoProfile -NonInteractive -Command '(Get-FileHash -LiteralPath $env:MOONBIT_ARCHIVE_TO_HASH).Hash' | str trim | str lowercase
+  # Prefer streaming tools on Unix because Nushell 0.117 buffers hash input.
+  if $nu.os-info.family == 'unix' {
+    if (which sha256sum | is-not-empty) {
+      return (open --raw $path | ^sha256sum | split row ' ' | first)
     }
-  } else if (which sha256sum | is-not-empty) {
-    open --raw $path | ^sha256sum | split row ' ' | first
-  } else if (which shasum | is-not-empty) {
-    open --raw $path | ^shasum -a 256 | split row ' ' | first
-  } else {
-    open --raw $path | hash sha256
+    if (which shasum | is-not-empty) {
+      return (open --raw $path | ^shasum -a 256 | split row ' ' | first)
+    }
   }
+  open --raw $path | hash sha256
 }
 
 # The worker runs under the per-URL lock, with an isolated path as a fallback.

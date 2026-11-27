@@ -43,6 +43,8 @@ In rare circumstances you might get rate limiting errors, if this happens you ca
 | `setup-core` | `bool`   | Optional, Set to `true` to download and bundle Moonbit Core, `false` to skip it. Defaults to `true`                                              |
 | `core-version` | `string` | Optional, A valid moonbit core version, such as `0.10.11+6ff76a5f9`, `latest`, `pre-release`, or `nightly`. Defaults to `latest` |
 
+If a download is interrupted, run setup again with the same options on the same machine. It can resume from the partial file in `$MOONBIT_HOME/.setup-moonbit-downloads` when the server confirms the same archive. On Linux, resuming across runs requires `flock`. Each new GitHub-hosted job starts with a fresh runner.
+
 ## License
 
 Licensed under:

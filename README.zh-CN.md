@@ -40,6 +40,8 @@ steps:
 | `setup-core` | `bool`   | 可选，设置为 `true` 则下载并打包 Moonbit Core，`false` 则跳过。默认为 `true`                                                |
 | `core-version` | `string` | 可选，合法的 Moonbit Core 版本，比如：`0.10.11+6ff76a5f9`、`latest`、`pre-release` 或者 `nightly`。默认为 `latest` |
 
+如果下载中断，在同一台机器上使用相同参数重新运行即可。服务端确认安装包为同一份时，安装器可以复用 `$MOONBIT_HOME/.setup-moonbit-downloads` 里已下载的部分。Linux 需要 `flock` 才能跨次续传。GitHub 托管的每个新 job 都会使用新的 runner。
+
 ## 许可
 
 Licensed under:

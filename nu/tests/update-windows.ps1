@@ -1,8 +1,9 @@
 param([string]$Installer)
 
 $ErrorActionPreference = 'Stop'
-$Installer = (Resolve-Path -LiteralPath $Installer).Path
+$source = (Resolve-Path -LiteralPath $Installer).Path
 $work = Join-Path $env:TEMP ('setup moonbit test ' + [guid]::NewGuid().ToString('N'))
+$Installer = Join-Path $work 'moonbit.nu'
 $homeDir = Join-Path $work 'installed'
 $payload = Join-Path $work 'payload'
 $mocks = Join-Path $work 'mocks'
@@ -96,6 +97,10 @@ $environment = @{
 }
 $previous = @{}
 try {
+    [void][IO.Directory]::CreateDirectory($work)
+    [IO.File]::Copy($source, $Installer)
+    [IO.File]::Copy((Join-Path (Split-Path -Parent $source) 'publish-windows.ps1'), (Join-Path $work 'publish-windows.ps1'))
+    [IO.File]::Copy((Join-Path $PSScriptRoot 'fixtures\download.nu'), (Join-Path $work 'download.nu'))
     foreach ($name in $environment.Keys) {
         $previous[$name] = [Environment]::GetEnvironmentVariable($name)
         [Environment]::SetEnvironmentVariable($name, $environment[$name])

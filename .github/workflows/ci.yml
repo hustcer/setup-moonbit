@@ -37,6 +37,9 @@ jobs:
         run: |
           moon version --all
 
+      - name: Check interrupted downloads can resume
+        run: node --test nu/tests/download.test.mjs
+
       - name: Check staged toolchain updates preserve the installation
         if: runner.os != 'Windows'
         shell: nu {0}

@@ -43,7 +43,7 @@ function Move-Entry([string]$Source, [string]$Destination, [bool]$Directory) {
     catch { throw "Cannot move '$([IO.Path]::GetFileName($Source))' from '$Source' to '$Destination'. $($_.Exception.Message)" }
 }
 
-function Move-ForInstall($Entry, [string]$Destination, [switch]$Required) {
+function Move-ForInstall($Entry, [string]$Destination, [switch]$Required, [switch]$OldBin, [switch]$NewBin) {
     [void][IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($Destination))
     Move-Entry $Entry.FullName $Destination $Entry.PSIsContainer
     $moves.Add(@{
@@ -51,12 +51,27 @@ function Move-ForInstall($Entry, [string]$Destination, [switch]$Required) {
         Destination = $Destination
         Directory = $Entry.PSIsContainer
         Required = $Required.IsPresent
+        OldBin = $OldBin.IsPresent
+        NewBin = $NewBin.IsPresent
     })
 }
 
-function Merge-OldBin([string]$OldDir, [string]$NewDir) {
+function Assert-MergeLayout($Incoming, [string]$Destination) {
+    $live = Get-Entry $Destination
+    if (Test-RealDirectory $live) {
+        if (-not (Test-RealDirectory $Incoming)) {
+            throw "Cannot replace existing directory '$($live.FullName)' with a non-directory archive entry."
+        }
+        foreach ($child in (Get-ChildItem -LiteralPath $Incoming.FullName -Force)) {
+            Assert-MergeLayout $child (Join-Path $Destination $child.Name)
+        }
+    }
+}
+
+function Merge-OldBin([string]$OldDir, [string]$NewDir, [string]$LiveDir) {
     foreach ($old in (Get-ChildItem -LiteralPath $OldDir -Force)) {
         $destination = Join-Path $NewDir $old.Name
+        $livePath = Join-Path $LiveDir $old.Name
         $incoming = Get-Entry $destination
         if ($null -eq $incoming) {
             # These paths must be movable, so release their probe handles before moving them.
@@ -66,9 +81,9 @@ function Merge-OldBin([string]$OldDir, [string]$NewDir) {
         }
         elseif (Test-RealDirectory $old) {
             if (-not (Test-RealDirectory $incoming)) {
-                throw "Cannot replace existing directory '$($old.FullName)' with a non-directory archive entry."
+                throw "Cannot replace existing directory '$livePath' with a non-directory archive entry."
             }
-            Merge-OldBin $old.FullName $incoming.FullName
+            Merge-OldBin $old.FullName $incoming.FullName $livePath
         }
     }
 }
@@ -98,7 +113,7 @@ function Publish-Entry($Incoming, [string]$Destination, [string]$Previous, [swit
     $live = Get-Entry $Destination
     if (-not $Replace -and (Test-RealDirectory $live)) {
         if (-not (Test-RealDirectory $Incoming)) {
-            throw "Cannot replace existing directory '$Destination' with a non-directory archive entry."
+            throw "Cannot replace existing directory '$($live.FullName)' with a non-directory archive entry."
         }
         foreach ($child in (Get-ChildItem -LiteralPath $Incoming.FullName -Force)) {
             Publish-Entry $child (Join-Path $Destination $child.Name) (Join-Path $Previous $child.Name)
@@ -124,6 +139,11 @@ try {
             throw "Cannot replace '$($entry.FullName)' with a directory."
         }
     }
+    foreach ($entry in (Get-ChildItem -LiteralPath $Staged -Force)) {
+        if ($entry.Name -notin 'lib', 'include') {
+            Assert-MergeLayout $entry (Join-Path $InstallDir $entry.Name)
+        }
+    }
 
     $liveBin = Join-Path $InstallDir 'bin'
     $oldBin = Join-Path $Backup 'bin'
@@ -137,9 +157,9 @@ try {
         try {
             $old = Get-Entry $liveBin
             if ($null -ne $old) {
-                try { Move-ForInstall $old $oldBin -Required }
+                try { Move-ForInstall $old $oldBin -Required -OldBin }
                 catch { throw "Cannot move the old MoonBit bin directory. Close any processes using it and retry. $($_.Exception.Message)" }
-                Merge-OldBin $oldBin $newBin
+                Merge-OldBin $oldBin $newBin $old.FullName
                 Protect-OldImages (Get-Entry $oldBin)
             }
 
@@ -152,7 +172,7 @@ try {
                 }
             }
             # Make binaries visible only after the matching libraries and headers.
-            Move-ForInstall (Get-Entry $newBin) $liveBin -Required
+            Move-ForInstall (Get-Entry $newBin) $liveBin -Required -NewBin
         }
         finally {
             foreach ($handle in $images) { $handle.Dispose() }
@@ -165,13 +185,13 @@ try {
         for ($index = $moves.Count - 1; $index -ge 0; $index--) {
             $move = $moves[$index]
             # Keep old binaries private if a required part of the old install could not be restored.
-            if ($move.Source -eq $liveBin -and $requiredRestoreFailed) { continue }
+            if ($move.OldBin -and $requiredRestoreFailed) { continue }
             try { Move-Entry $move.Destination $move.Source $move.Directory }
             catch {
                 $restoreErrors.Add($_.Exception.Message)
                 if ($move.Required) { $requiredRestoreFailed = $true }
                 # If new bin is still live, keep its matching lib and include in place.
-                if ($move.Destination -eq $liveBin) { break }
+                if ($move.NewBin) { break }
             }
         }
         if ($restoreErrors.Count -gt 0) {

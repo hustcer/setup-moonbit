@@ -13,6 +13,7 @@ def main [installer: path] {
     let core_archive = [$work_dir core.tar.gz] | path join
     let incomplete_archive = [$work_dir incomplete.tar.gz] | path join
     let incomplete_core = [$work_dir incomplete-core.tar.gz] | path join
+    let invalid_alias_archive = [$work_dir invalid-alias.tar.gz] | path join
     let invalid_moon_archive = [$work_dir invalid-moon.tar.gz] | path join
     let conflicting_archive = [$work_dir conflicting.tar.gz] | path join
     let moon = [$installed bin moon] | path join
@@ -51,6 +52,10 @@ def main [installer: path] {
     ^tar -czf $core_archive -C $core_payload core
     ^tar -czf $incomplete_archive -C $payload bin
     ^tar -czf $incomplete_core -C $payload lib
+    let payload_moonx = [$payload bin moonx] | path join
+    mkdir $payload_moonx
+    ^tar -czf $invalid_alias_archive -C $payload bin lib include
+    rm --permanent -rf $payload_moonx
     let payload_moon = [$payload bin moon] | path join
     let valid_moon = open --raw $payload_moon
     'invalid executable' | save --force $payload_moon
@@ -129,11 +134,17 @@ def main [installer: path] {
       assert str contains $missing_lib.stderr 'Expected a directory'
       assert not equal $missing_core.exit_code 0
       assert str contains $missing_core.stderr 'Expected a core'
-      let invalid_moon = with-env {TEST_DOWNLOAD: 'success', TEST_ARCHIVE: $invalid_moon_archive} {
+      let invalid_alias = with-env {TEST_DOWNLOAD: 'success', TEST_ARCHIVE: $invalid_alias_archive} {
         ^nu --no-config-file $installer | complete
+      }
+      assert not equal $invalid_alias.exit_code 0
+      assert str contains $invalid_alias.stderr 'moonx symlink'
+      let invalid_moon = with-env {TEST_DOWNLOAD: 'core', TEST_ARCHIVE: $invalid_moon_archive} {
+        ^nu --no-config-file $installer -cV latest | complete
       }
       assert not equal $invalid_moon.exit_code 0
       assert str contains $invalid_moon.stderr 'staged Moon'
+      assert not ($observed | path exists) 'Core download should not start when staged Moon is invalid'
       assert equal (open --raw $moon) 'old moon'
       assert equal (open --raw $core) 'old core'
       assert equal (open --raw $stale_include) 'stale include'

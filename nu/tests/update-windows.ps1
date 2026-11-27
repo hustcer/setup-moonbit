@@ -7,7 +7,10 @@ $homeDir = Join-Path $work 'installed'
 $payload = Join-Path $work 'payload'
 $mocks = Join-Path $work 'mocks'
 $archive = Join-Path $work 'toolchain.zip'
+$incompleteArchive = Join-Path $work 'incomplete.zip'
 $invalidAliasArchive = Join-Path $work 'invalid-alias.zip'
+$invalidMoonArchive = Join-Path $work 'invalid-moon.zip'
+$conflictingArchive = Join-Path $work 'conflicting.zip'
 $ready = Join-Path $work 'ready'
 $oldMoon = Join-Path $homeDir 'bin\moon.exe'
 $legacyTool = Join-Path $homeDir 'bin\legacy.exe'
@@ -41,9 +44,9 @@ function Assert-OldInstall {
     Assert-NoStaging
 }
 
-function Assert-NoStaging {
-    $staging = Get-ChildItem -LiteralPath $homeDir -Force | Where-Object Name -Like '.setup-moonbit.*'
-    Assert-True ($null -eq $staging) 'A staging directory was left behind.'
+function Assert-NoStaging([string]$Root = $homeDir) {
+    $staging = Get-ChildItem -LiteralPath $Root -Force | Where-Object Name -Like '.setup-moonbit.*'
+    Assert-True ($null -eq $staging) "A staging directory was left behind in '$Root'."
 }
 
 $environment = @{
@@ -113,17 +116,37 @@ public static class MoonBitFixture {
     [IO.File]::WriteAllText((Join-Path $payload 'CREDITS.md'), 'new credits')
     & tar.exe -a -cf $archive -C $payload bin lib include CREDITS.md
     Assert-True ($LASTEXITCODE -eq 0) 'Could not create the test archive.'
-    [void][IO.Directory]::CreateDirectory((Join-Path $payload 'bin\moonx.exe'))
+    & tar.exe -a -cf $incompleteArchive -C $payload bin
+    Assert-True ($LASTEXITCODE -eq 0) 'Could not create the incomplete archive.'
+    $invalidAlias = Join-Path $payload 'bin\moonx.exe'
+    [void][IO.Directory]::CreateDirectory($invalidAlias)
     & tar.exe -a -cf $invalidAliasArchive -C $payload bin lib include
     Assert-True ($LASTEXITCODE -eq 0) 'Could not create the archive with an invalid alias.'
+    [IO.Directory]::Delete($invalidAlias)
+    $validMoonBytes = [IO.File]::ReadAllBytes($newMoon)
+    [IO.File]::WriteAllText($newMoon, 'invalid executable')
+    & tar.exe -a -cf $invalidMoonArchive -C $payload bin lib include
+    Assert-True ($LASTEXITCODE -eq 0) 'Could not create the archive with an invalid executable.'
+    [IO.File]::WriteAllBytes($newMoon, $validMoonBytes)
+    $payloadInternal = Join-Path $payload 'bin\internal'
+    [IO.Directory]::Delete($payloadInternal, $true)
+    [IO.File]::WriteAllText($payloadInternal, 'unexpected replacement')
+    & tar.exe -a -cf $conflictingArchive -C $payload bin lib include CREDITS.md
+    Assert-True ($LASTEXITCODE -eq 0) 'Could not create the conflicting archive.'
 
-    $env:TEST_MOONBIT_ARCHIVE = $invalidAliasArchive
-    try {
-        $result = Invoke-Installer
-        Assert-True ($result.Code -ne 0 -and $result.Output.Contains('moonx.exe hard link')) "Expected alias creation to fail. $($result.Output)"
+    foreach ($invalidCase in @(
+        @{ Archive = $incompleteArchive; Expected = 'Expected a directory'; Label = 'incomplete archive' }
+        @{ Archive = $invalidAliasArchive; Expected = 'moonx.exe hard link'; Label = 'invalid alias' }
+        @{ Archive = $invalidMoonArchive; Expected = 'staged Moon'; Label = 'invalid executable' }
+    )) {
+        $env:TEST_MOONBIT_ARCHIVE = $invalidCase.Archive
+        try {
+            $result = Invoke-Installer
+            Assert-True ($result.Code -ne 0 -and $result.Output.Contains($invalidCase.Expected)) "Expected $($invalidCase.Label) to fail. $($result.Output)"
+        }
+        finally { $env:TEST_MOONBIT_ARCHIVE = $archive }
+        Assert-OldInstall
     }
-    finally { $env:TEST_MOONBIT_ARCHIVE = $archive }
-    Assert-OldInstall
 
     $conflictDir = Join-Path $work 'path conflict'
     [void][IO.Directory]::CreateDirectory($conflictDir)
@@ -135,8 +158,24 @@ public static class MoonBitFixture {
         Assert-True ($result.Code -ne 0 -and $result.Output.Contains('Cannot replace')) "Expected a path conflict. $($result.Output)"
         Assert-True ([IO.File]::ReadAllText($conflict) -eq 'existing file') 'The conflicting file was changed.'
         Assert-True (-not [IO.Directory]::Exists((Join-Path $conflictDir 'bin'))) 'The conflicting install was partially published.'
+        Assert-NoStaging $conflictDir
     }
     finally { $env:MOONBIT_HOME = $homeDir }
+
+    $env:TEST_MOONBIT_ARCHIVE = $conflictingArchive
+    try {
+        $result = Invoke-Installer
+        $normalizedOutput = $result.Output -replace '\s+', ' '
+        $compactOutput = $result.Output -replace '\s+', ''
+        Assert-True (
+            $result.Code -ne 0 -and
+            $normalizedOutput.Contains('Cannot replace existing directory') -and
+            $compactOutput.Contains('installed\bin\internal') -and
+            -not $compactOutput.Contains('backup\bin\internal')
+        ) "Expected a bin subdirectory conflict referencing the live path. $($result.Output)"
+    }
+    finally { $env:TEST_MOONBIT_ARCHIVE = $archive }
+    Assert-OldInstall
 
     $lock = [IO.File]::Open($lockPath, 'OpenOrCreate', 'ReadWrite', 'None')
     try {
@@ -194,6 +233,15 @@ public static class MoonBitFixture {
     $result = Invoke-Installer
     Assert-True ($result.Code -eq 0) "Expected a successful install with brackets in the path. $($result.Output)"
     Assert-True ([IO.File]::Exists((Join-Path $bracketHome 'bin\moonx.exe'))) 'The alias is missing from the bracket path.'
+    Assert-NoStaging $bracketHome
+
+    $bracketCustom = Join-Path $bracketHome 'bin\internal\bracket-custom.txt'
+    [IO.File]::WriteAllText($bracketCustom, 'bracket custom tool')
+    $result = Invoke-Installer
+    Assert-True ($result.Code -eq 0) "Expected a successful upgrade with brackets in the path. $($result.Output)"
+    Assert-True ([IO.File]::Exists((Join-Path $bracketHome 'bin\moonx.exe'))) 'The alias is missing after upgrading the bracket path.'
+    Assert-True ([IO.File]::ReadAllText($bracketCustom) -eq 'bracket custom tool') 'The custom file was lost when upgrading the bracket path.'
+    Assert-NoStaging $bracketHome
 }
 finally {
     foreach ($name in $previous.Keys) { [Environment]::SetEnvironmentVariable($name, $previous[$name]) }

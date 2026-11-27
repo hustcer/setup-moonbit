@@ -191,7 +191,25 @@ def prepare-toolchain [
     ^chmod +x ...(ls $bin_dir | get name)
     let tcc = [$bin_dir internal tcc] | path join
     if ($tcc | path exists) { ^chmod +x $tcc }
-    try { ^ln -sfn moon ([$bin_dir moonx] | path join) } catch { print $'(ansi r)Failed to create moonx symlink(ansi rst)' }
+    let moonx = [$bin_dir moonx] | path join
+    if ($moonx | path type) == 'dir' {
+      error make {msg: $'Cannot create the moonx symlink over directory ($moonx)'}
+    }
+    ^ln -sfn moon $moonx | complete | require-success 'Failed to create the moonx symlink'
+  }
+
+  let staged_env = {
+    MOON_HOME: $staged
+    MOON_TOOLCHAIN_ROOT: $staged
+    PATH: ($env.PATH | prepend $bin_dir)
+  }
+  with-env $staged_env {
+    let version_result = try {
+      ^$moon_bin version --all | complete
+    } catch {|err|
+      error make {msg: 'Failed to start the staged Moon executable', help: $err.msg}
+    }
+    $version_result | require-success 'Failed to run the staged Moon executable'
   }
 
   let core_dir = [$lib_dir core] | path join
@@ -205,22 +223,8 @@ def prepare-toolchain [
     if ($core_dir | path type) != 'dir' {
       error make {msg: $'Expected a core directory in ($core_archive)'}
     }
-  }
-  with-env {
-    MOON_HOME: $staged
-    MOON_TOOLCHAIN_ROOT: $staged
-    PATH: ($env.PATH | prepend $bin_dir)
-  } {
-    let version_result = try {
-      ^$moon_bin version --all | complete
-    } catch {|err|
-      error make {msg: 'Failed to start the staged Moon executable', help: $err.msg}
-    }
-    $version_result | require-success 'Failed to run the staged Moon executable'
-    if $setup_core {
-      with-env {MOON_CORE_OVERRIDE: $core_dir} {
-        bundle-core $moon_bin $core_dir $version
-      }
+    with-env ($staged_env | insert MOON_CORE_OVERRIDE $core_dir) {
+      bundle-core $moon_bin $core_dir $version
     }
   }
 }
@@ -246,7 +250,7 @@ def plan-install [staged: string, install_dir: string, backup: string, replace: 
 
 def install-toolchain [staged: string, backup: string, install_dir: string] {
   if (windows?) {
-    ^powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $WINDOWS_PUBLISHER $staged $backup $install_dir |
+    ^powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $WINDOWS_PUBLISHER -Staged $staged -Backup $backup -InstallDir $install_dir |
       complete | require-success 'Failed to publish the MoonBit toolchain on Windows'
     return
   }

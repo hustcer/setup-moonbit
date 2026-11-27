@@ -29,6 +29,10 @@ def main [installer: path] {
     [
       '#!/usr/bin/env -S nu --no-config-file'
       'def --wrapped main [...args: string] {'
+      '  if $args == ["version" "--all"] {'
+      '    print "test toolchain version"'
+      '    return'
+      '  }'
       '  if $env.TEST_MOON_FAIL_STDOUT? == "1" {'
       '    print "bundle failed on stdout"'
       '    exit 1'
@@ -136,6 +140,7 @@ def main [installer: path] {
       ^chmod 000 $custom_tool
       let result = with-env {TEST_DOWNLOAD: 'success'} { ^nu --no-config-file $installer | complete }
       assert equal $result.exit_code 0 $result.stderr
+      assert equal ($result.stdout | str trim | lines | last) 'test toolchain version'
       assert str contains (open --raw $moon) 'TEST_MOON_FAIL_STDOUT'
       assert equal (open --raw ([$installed bin internal bundled-tool] | path join)) 'new bundled tool'
       assert equal ([$installed bin moonx] | path join | path type) 'symlink'

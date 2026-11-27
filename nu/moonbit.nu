@@ -141,6 +141,16 @@ export def 'setup moonbit' [
   print $'(char nl)(ansi g)moonbit was installed successfully to ($MOONBIT_HOME)(ansi rst)'
   print 'To verify the downloaded binaries, check https://www.moonbitlang.com/download#verifying-binaries for instructions.'
   print "To know how to add shell completions, run 'moon shell-completion --help'"
+
+  let moon_bin = [$MOONBIT_BIN_DIR (if (windows?) { 'moon.exe' } else { 'moon' })] | path join
+  with-env {
+    MOON_HOME: $MOONBIT_HOME
+    MOON_TOOLCHAIN_ROOT: $MOONBIT_HOME
+    PATH: ($env.PATH | prepend $MOONBIT_BIN_DIR)
+  } {
+    print $'(ansi g)Moonbit toolchain version details:(ansi rst)'
+    ^$moon_bin version --all
+  }
 }
 
 def prepare-toolchain [

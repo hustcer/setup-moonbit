@@ -26,4 +26,14 @@ words:
 - pipefail
 - Infinigence
 - moonbitlang
+- DMOONBIT
+- ifdef
+- ifndef
+- LASTEXITCODE
+- mktemp
+- moonx
+- nuon
+- println
+- rustls
+- winapi
 ignorePaths:

@@ -11,6 +11,10 @@ def main [installer: path] {
     let mocks = [$work_dir mocks] | path join
     let archive = [$work_dir toolchain.tar.gz] | path join
     let core_archive = [$work_dir core.tar.gz] | path join
+    let incomplete_archive = [$work_dir incomplete.tar.gz] | path join
+    let incomplete_core = [$work_dir incomplete-core.tar.gz] | path join
+    let invalid_moon_archive = [$work_dir invalid-moon.tar.gz] | path join
+    let conflicting_archive = [$work_dir conflicting.tar.gz] | path join
     let moon = [$installed bin moon] | path join
     let core = [$installed lib core moon.mod] | path join
     let stale_lib = [$installed lib stale] | path join
@@ -45,6 +49,17 @@ def main [installer: path] {
     'new core' | save ([$core_payload core moon.mod] | path join)
     ^tar -czf $archive -C $payload bin lib include
     ^tar -czf $core_archive -C $core_payload core
+    ^tar -czf $incomplete_archive -C $payload bin
+    ^tar -czf $incomplete_core -C $payload lib
+    let payload_moon = [$payload bin moon] | path join
+    let valid_moon = open --raw $payload_moon
+    'invalid executable' | save --force $payload_moon
+    ^tar -czf $invalid_moon_archive -C $payload bin lib include
+    $valid_moon | save --force $payload_moon
+    let internal = [$payload bin internal] | path join
+    mv $internal ([$work_dir payload-internal] | path join)
+    'unexpected replacement' | save $internal
+    ^tar -czf $conflicting_archive -C $payload bin lib include
 
     let curl = [$mocks curl] | path join
     [
@@ -103,13 +118,54 @@ def main [installer: path] {
       assert equal (open --raw $core) 'old core'
       assert equal (ls -a $installed | get name | path basename | sort) [bin include lib]
 
+      # Invalid archive layouts must fail before replacing any installed file.
+      let missing_lib = with-env {TEST_DOWNLOAD: 'success', TEST_ARCHIVE: $incomplete_archive} {
+        ^nu --no-config-file $installer | complete
+      }
+      let missing_core = with-env {TEST_DOWNLOAD: 'bundle-fail', TEST_CORE_ARCHIVE: $incomplete_core} {
+        ^nu --no-config-file $installer -cV latest | complete
+      }
+      assert not equal $missing_lib.exit_code 0
+      assert str contains $missing_lib.stderr 'Expected a directory'
+      assert not equal $missing_core.exit_code 0
+      assert str contains $missing_core.stderr 'Expected a core'
+      let invalid_moon = with-env {TEST_DOWNLOAD: 'success', TEST_ARCHIVE: $invalid_moon_archive} {
+        ^nu --no-config-file $installer | complete
+      }
+      assert not equal $invalid_moon.exit_code 0
+      assert str contains $invalid_moon.stderr 'staged Moon'
+      assert equal (open --raw $moon) 'old moon'
+      assert equal (open --raw $core) 'old core'
+      assert equal (open --raw $stale_include) 'stale include'
+      assert equal (ls -a $installed | get name | path basename | sort) [bin include lib]
+
+      let conflict_home = [$work_dir conflicting-install] | path join
+      mkdir $conflict_home
+      let conflict_path = [$conflict_home lib] | path join
+      'existing file' | save $conflict_path
+      let conflict = with-env {TEST_DOWNLOAD: 'success', MOONBIT_HOME: $conflict_home} {
+        ^nu --no-config-file $installer | complete
+      }
+      assert not equal $conflict.exit_code 0
+      assert str contains $conflict.stderr 'Cannot replace'
+      assert equal (open --raw $conflict_path) 'existing file'
+      assert equal (ls -a $conflict_home | get name | path basename) [lib]
+
+      let bin_conflict = with-env {TEST_DOWNLOAD: 'success', TEST_ARCHIVE: $conflicting_archive} {
+        ^nu --no-config-file $installer | complete
+      }
+      assert not equal $bin_conflict.exit_code 0
+      assert str contains $bin_conflict.stderr 'Cannot replace'
+      assert equal (open --raw $custom_tool) 'custom tool'
+      assert equal (open --raw $moon) 'old moon'
+
       # 3. An existing lock must block concurrent installation without deleting the lock or live files.
       let lock_path = [$installed .setup-moonbit-lock] | path join
       mkdir $lock_path
       try {
         let locked = with-env {TEST_DOWNLOAD: 'success'} { ^nu --no-config-file $installer | complete }
         assert not equal $locked.exit_code 0
-        assert str contains $locked.stderr '.setup-moonbit-lock'
+        assert str contains $locked.stderr 'Cannot acquire'
         assert (($lock_path | path type) == 'dir') 'Existing lock was removed on contention'
         assert equal (open --raw $moon) 'old moon'
         assert equal (open --raw $core) 'old core'

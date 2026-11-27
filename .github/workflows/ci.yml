@@ -37,6 +37,11 @@ jobs:
         run: |
           moon version --all
 
+      - name: Check staged toolchain updates preserve the installation
+        if: runner.os != 'Windows'
+        shell: nu {0}
+        run: nu --no-config-file nu/tests/update.nu nu/moonbit.nu
+
   setup-moonbit-of-version:
     strategy:
       fail-fast: false

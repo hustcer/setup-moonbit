@@ -34,33 +34,33 @@ export-env {
   $env.config.color_config.leading_trailing_space_bg = { attr: n }
 }
 
-# Download binary file from CLI_HOST with curl or `http get`
-def fetch-release [ version: string, archive: string ] {
-  let version = $version | str replace + %2B
-  let assets = $'($CLI_HOST)/binaries/($version)/($archive)'
-  print $'Fetch binaries from (ansi g)($assets)(ansi rst)'
+# Download an archive into the temporary working directory.
+def fetch-archive [url: string, archive: string] {
+  print $'Fetch (ansi g)($url)(ansi rst)'
   if (is-installed curl) {
-    curl -f -O -L $assets
-  } else {
-    http get -H $HTTP_HEADERS $assets | save --progress --force $archive
+    ^curl -fL -o $archive $url
+    return
   }
+  http get --raw -H $HTTP_HEADERS $url | save --progress $archive
 }
 
-# Download moonbit core from CLI_HOST with curl or `http get`
-def fetch-core [ version: string ] {
-  if ($version not-in $VALID_VERSION_TAG) and not (is-semver $version) {
-    print $'(ansi r)Invalid version: ($version)(ansi rst)'; exit 2
-  }
-  let encoded_version = $version | str replace + %2B
-  let remote_suffix = if (windows?) { $'($encoded_version).zip' } else { $'($encoded_version).tar.gz' }
-  let local_suffix = if (windows?) { $'($version).zip' } else { $'($version).tar.gz' }
-  let assets = $'($CLI_HOST)/cores/core-($remote_suffix)'
-  let local_file = $'core-($local_suffix)'
-  print $'Fetch core assets from (ansi g)($assets)(ansi rst)'
-  if (is-installed curl) {
-    curl -f -o $local_file -L $assets
+def extract-archive [archive: string, destination: string] {
+  let result = if (windows?) {
+    ^unzip -qo $archive -d $destination | complete
   } else {
-    http get -H $HTTP_HEADERS $assets | save --progress --force $local_file
+    ^tar xf $archive --directory $destination | complete
+  }
+  $result | require-success $'Failed to extract ($archive)'
+}
+
+def require-success [message: string]: record -> nothing {
+  let result = $in
+  if $result.exit_code != 0 {
+    let details = [$result.stderr $result.stdout] | each { str trim } | where { is-not-empty } | str join (char nl)
+    if ($details | is-empty) {
+      error make {msg: $message}
+    }
+    error make {msg: $message, help: $details}
   }
 }
 
@@ -98,18 +98,15 @@ export def 'setup moonbit' [
   --core-version(-V): string = 'latest',  # The version of moonbit core to setup, `latest` by default
   --patch-runtime(-p),  # Patch runtime.c to fix native build on Windows without Visual Studio
 ] {
-  let version = $version | default $env.MOONBIT_INSTALL_VERSION? | default 'latest'
+  let version = $version | default --empty $env.MOONBIT_INSTALL_VERSION? | default --empty 'latest'
   if ($version not-in $VALID_VERSION_TAG) and not (is-semver $version) {
     print $'(ansi r)Invalid version: ($version)(ansi rst)'; exit 2
   }
-  let MOONBIT_HOME = $env.MOONBIT_HOME? | default ([$nu.home-dir .moon] | path join)
+  if $setup_core and ($core_version not-in $VALID_VERSION_TAG) and not (is-semver $core_version) {
+    print $'(ansi r)Invalid version: ($core_version)(ansi rst)'; exit 2
+  }
+  let MOONBIT_HOME = $env.MOONBIT_HOME? | default --empty ([$nu.home-dir .moon] | path join) | path expand
   let MOONBIT_BIN_DIR = [$MOONBIT_HOME bin] | path join
-  let MOONBIT_LIB_DIR = [$MOONBIT_HOME lib] | path join
-  let coreDir = $'($MOONBIT_LIB_DIR)/core'
-  if not ($MOONBIT_BIN_DIR | path exists) { mkdir $MOONBIT_BIN_DIR }
-  if not ($MOONBIT_LIB_DIR | path exists) { mkdir $MOONBIT_LIB_DIR }
-
-  cd $MOONBIT_HOME
   let OS_INFO = $'($nu.os-info.name)_($nu.os-info.arch)'
   let archive = $ARCH_TARGET_MAP | get -o $OS_INFO
   if ($archive | is-empty) { print $'Unsupported Platform: ($OS_INFO)'; exit 2 }
@@ -120,44 +117,18 @@ export def 'setup moonbit' [
   print $'(char nl)Setup moonbit toolchain of version: (ansi g)($version)(ansi rst)'; hr-line
   print $'Current moon home: (ansi g)($MOONBIT_HOME)(ansi rst)'
 
-  # Clean up old lib and include directories before extraction to
-  # avoid stale files, matching the behavior of the official install scripts
-  let includeDir = [$MOONBIT_HOME include] | path join
-  if ($includeDir | path exists) { rm -rf $includeDir }
-  if ($MOONBIT_LIB_DIR | path exists) { rm -rf $MOONBIT_LIB_DIR }
-
-  if (windows?) {
-    fetch-release $version $'moonbit-($archive).zip'
-    unzip -qo $'moonbit-($archive).zip' -d $MOONBIT_HOME
-    rm moonbit*.zip
-    if $patch_runtime {
-      # Workaround: runtime.c includes <windows.h> without guarding it
-      # behind MOONBIT_NATIVE_NO_SYS_HEADER. When TCC has no winapi headers
-      # and Visual Studio is not installed, this causes the native build to
-      # fail. Patch runtime.c to guard the include and provide manual
-      # declarations for the required Windows API functions.
-      patch-runtime-windows-header $MOONBIT_LIB_DIR
-    }
-  } else {
-    fetch-release $version $'moonbit-($archive).tar.gz'
-    tar xf $'moonbit-($archive).tar.gz' --directory $MOONBIT_HOME
-    const IGNORE = []
-    ls $MOONBIT_BIN_DIR
-      | get name
-      | where { ($in | path basename) not-in $IGNORE }
-      | each { chmod +x $in }
-    try { chmod +x $'($MOONBIT_BIN_DIR)/internal/tcc' } catch { print $'(ansi r)Failed to make tcc executable(ansi rst)' }
-    rm moonbit*.tar.gz
-  }
-
-  # Link moonx to moon, matching the behavior of the official install scripts
-  if (windows?) {
-    let moonx_exe = $"($MOONBIT_BIN_DIR)\\moonx.exe"
-    if ($moonx_exe | path exists) { rm -f $moonx_exe }
-    # SymbolicLink on Windows requires elevated privileges, so use HardLink instead
-    try { ^cmd /c mklink /H $moonx_exe $"($MOONBIT_BIN_DIR)\\moon.exe" } catch { print $"(ansi r)Failed to create hard link for ($moonx_exe)(ansi rst)" }
-  } else {
-    try { ^ln -sfn moon $"($MOONBIT_BIN_DIR)/moonx" } catch { print $"(ansi r)Failed to create symlink for ($MOONBIT_BIN_DIR)/moonx(ansi rst)" }
+  mkdir $MOONBIT_HOME
+  # Keep preparation off the live paths and on the same filesystem as the final install.
+  let work_dir = mktemp --directory --tmpdir-path $MOONBIT_HOME '.setup-moonbit.XXXXXXXX'
+  let staged = [$work_dir toolchain] | path join
+  let backup = [$work_dir backup] | path join
+  try {
+    mkdir $staged $backup
+    prepare-toolchain $work_dir $staged $archive $version $core_version $setup_core $patch_runtime
+    install-toolchain $staged $backup $MOONBIT_HOME
+  } finally {
+    # Retain any original files that could not be restored.
+    if not ($backup | path exists) or (ls -a $backup | is-empty) { rm --permanent -rf $work_dir }
   }
 
   print 'OS Info:'; print $nu.os-info; hr-line
@@ -166,53 +137,139 @@ export def 'setup moonbit' [
   if ('GITHUB_PATH' in $env) {
     echo $MOONBIT_BIN_DIR  o>> $env.GITHUB_PATH
   }
-  if ('Path' in $env) {
-    $env.Path = ($env.Path | split row (char esep) | prepend $MOONBIT_BIN_DIR)
-  }
-  if ('PATH' in $env) {
-    $env.PATH = ($env.PATH | split row (char esep) | prepend $MOONBIT_BIN_DIR)
-  }
-
-  if $setup_core {
-    print $'(char nl)Setup moonbit core of version: (ansi g)($core_version)(ansi rst)'; hr-line
-    cd $MOONBIT_LIB_DIR; rm -rf ./core/*
-
-    fetch-core $core_version
-
-    if (windows?) {
-      unzip -qo $'core-($core_version).zip' -d $MOONBIT_LIB_DIR; rm $'core-($core_version).zip'
-    } else {
-      tar xf $'core-($core_version).tar.gz' --directory $MOONBIT_LIB_DIR; rm $'core-($core_version).tar.gz'
-    }
-    bundle-core $coreDir $version
-  }
 
   print $'(char nl)(ansi g)moonbit was installed successfully to ($MOONBIT_HOME)(ansi rst)'
   print 'To verify the downloaded binaries, check https://www.moonbitlang.com/download#verifying-binaries for instructions.'
   print "To know how to add shell completions, run 'moon shell-completion --help'"
 }
 
+def prepare-toolchain [
+  work_dir: string, staged: string, target: string, version: string,
+  core_version: string, setup_core: bool, patch_runtime: bool,
+] {
+  cd $work_dir
+  let bin_dir = [$staged bin] | path join
+  let lib_dir = [$staged lib] | path join
+  let moon_bin = [$bin_dir (if (windows?) { 'moon.exe' } else { 'moon' })] | path join
+  let extension = if (windows?) { 'zip' } else { 'tar.gz' }
+  let archive = $'moonbit-($target).($extension)'
+  let encoded_version = $version | str replace + %2B
+  fetch-archive $'($CLI_HOST)/binaries/($encoded_version)/($archive)' $archive
+  extract-archive $archive $staged
+  if not ($moon_bin | path exists) {
+    error make {msg: $'Moon executable missing from ($archive)'}
+  }
+
+  # Link moonx to moon, matching the behavior of the official install scripts.
+  if (windows?) {
+    if $patch_runtime { patch-runtime-windows-header $lib_dir }
+    let moonx_exe = [$bin_dir moonx.exe] | path join
+    rm -f $moonx_exe
+    # SymbolicLink on Windows requires elevated privileges, so use HardLink instead.
+    try { ^cmd /c mklink /H $moonx_exe $moon_bin } catch { print $'(ansi r)Failed to create hard link for ($moonx_exe)(ansi rst)' }
+  } else {
+    ^chmod +x ...(ls $bin_dir | get name)
+    let tcc = [$bin_dir internal tcc] | path join
+    if ($tcc | path exists) { ^chmod +x $tcc }
+    try { ^ln -sfn moon ([$bin_dir moonx] | path join) } catch { print $'(ansi r)Failed to create moonx symlink(ansi rst)' }
+  }
+
+  if $setup_core {
+    print $'(char nl)Setup moonbit core of version: (ansi g)($core_version)(ansi rst)'; hr-line
+    let encoded_core_version = $core_version | str replace + %2B
+    let core_archive = $'core-($core_version).($extension)'
+    let core_dir = [$lib_dir core] | path join
+    fetch-archive $'($CLI_HOST)/cores/core-($encoded_core_version).($extension)' $core_archive
+    mkdir $lib_dir
+    rm --permanent -rf $core_dir
+    extract-archive $core_archive $lib_dir
+    with-env {
+      MOON_HOME: $staged
+      MOON_TOOLCHAIN_ROOT: $staged
+      MOON_CORE_OVERRIDE: $core_dir
+      PATH: ($env.PATH | prepend $bin_dir)
+    } {
+      bundle-core $moon_bin $core_dir $version
+    }
+  }
+}
+
+def plan-install [staged: string, install_dir: string, backup: string, replace: list<string> = []] {
+  let staged_entries = ls -a $staged | get name | path basename
+  let names = $replace | append $staged_entries | uniq
+  $names | each { |name|
+    let incoming = [$staged $name] | path join
+    let installed = [$install_dir $name] | path join
+    let previous = [$backup $name] | path join
+    if $name not-in $replace and ($incoming | path type) == 'dir' and ($installed | path type) == 'dir' {
+      # Only replace paths that belong to the release when merging directories such as bin.
+      plan-install $incoming $installed $previous
+    } else {
+      [{incoming: $incoming, installed: $installed, previous: $previous, publish: ($name in $staged_entries)}]
+    }
+  } | flatten
+}
+
+def install-toolchain [staged: string, backup: string, install_dir: string] {
+  let lock_path = [$install_dir .setup-moonbit-lock] | path join
+  let lock = if (windows?) {
+    with-env {SETUP_MOONBIT_LOCK_PATH: $lock_path} {
+      # Use FileMode::CreateNew for an atomic, literal-path lock without PowerShell wildcard parsing.
+      ^powershell.exe -NoProfile -NonInteractive -Command '$ErrorActionPreference = "Stop"; [IO.File]::Open($env:SETUP_MOONBIT_LOCK_PATH, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None).Dispose()' | complete
+    }
+  } else {
+    ^mkdir -- $lock_path | complete
+  }
+  $lock | require-success $'Cannot acquire installation lock at ($lock_path). Wait for any other install to finish, or remove this lock if a previous run was interrupted.'
+  try {
+    let entries = plan-install $staged $install_dir $backup [lib include]
+    try {
+      for entry in $entries {
+        if ($entry.installed | path type) != null {
+          mkdir ($entry.previous | path dirname)
+          mv $entry.installed $entry.previous
+        }
+        if $entry.publish { mv $entry.incoming $entry.installed }
+      }
+    } catch { |err|
+      let restore_errors = $entries | reverse | each { |entry|
+        try {
+          if $entry.publish and ($entry.incoming | path type) == null and ($entry.installed | path type) != null {
+            mv $entry.installed $entry.incoming
+          }
+          if ($entry.previous | path type) != null {
+            if ($entry.installed | path type) != null {
+              error make {msg: $'Target path still exists: ($entry.installed)'}
+            }
+            mv $entry.previous $entry.installed
+          }
+        } catch { |restore_err|
+          $'($entry.installed): ($restore_err.msg)'
+        }
+      } | compact
+      if ($restore_errors | is-not-empty) {
+        error make {
+          msg: 'Failed to replace and restore the MoonBit toolchain'
+          help: ([$err.msg $'Backup directory: ($backup)' ...$restore_errors] | str join (char nl))
+        }
+      }
+      rm --permanent -rf $backup
+      error make {msg: 'Failed to replace the MoonBit toolchain', help: $err.msg}
+    }
+    rm --permanent -rf $backup
+  } finally {
+    rm --permanent -rf $lock_path
+  }
+}
+
 # Bundle moonbit core
-def bundle-core [coreDir: string, version: string] {
-  let moonBin = if (windows?) { 'moon.exe' } else { 'moon' }
+def bundle-core [moon_bin: string, core_dir: string, version: string] {
   print $'(char nl)Bundle moonbit core(ansi rst)'; hr-line
-  try {
-    ^$moonBin -C $coreDir bundle --warn-list -a --all
-  } catch {
-    print $'(ansi r)Failed to bundle core(ansi rst)'; exit 1
-  }
-  try {
-    ^$moonBin -C $coreDir bundle --warn-list -a --target wasm-gc --quiet
-  } catch {
-    print $'(ansi r)Failed to bundle core to wasm-gc(ansi rst)'; exit 1
-  }
+  ^$moon_bin -C $core_dir bundle --warn-list -a --all | complete | require-success 'Failed to bundle core'
+  ^$moon_bin -C $core_dir bundle --warn-list -a --target wasm-gc --quiet | complete | require-success 'Failed to bundle core to wasm-gc'
   if $version != 'nightly' or (windows?) { return }
   print $'(ansi g)Bundle core for llvm backend(ansi rst)'
-  try {
-    ^$moonBin -C $coreDir bundle --warn-list -a --target llvm
-  } catch {
-    print $'(ansi r)Failed to bundle core for llvm backend(ansi rst)'; exit 1
-  }
+  ^$moon_bin -C $core_dir bundle --warn-list -a --target llvm | complete | require-success 'Failed to bundle core for llvm backend'
 }
 
 # If current host is Windows

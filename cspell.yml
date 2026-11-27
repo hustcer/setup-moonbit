@@ -18,7 +18,9 @@ words:
 - hustcer
 - rsbuild
 - moonbit
+- moonc
 - moondoc
+- moonrun
 - justfile
 - lefthook
 - linewise

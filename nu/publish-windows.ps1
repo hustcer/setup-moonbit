@@ -56,12 +56,16 @@ function Move-ForInstall($Entry, [string]$Destination, [switch]$Required, [switc
     })
 }
 
+function Assert-MergeEntry($Incoming, $Existing, [string]$LivePath) {
+    if ($null -ne $Existing -and (Test-RealDirectory $Existing) -ne (Test-RealDirectory $Incoming)) {
+        throw "Cannot replace '$LivePath' because only one entry is a directory."
+    }
+}
+
 function Assert-MergeLayout($Incoming, [string]$Destination) {
     $live = Get-Entry $Destination
+    Assert-MergeEntry $Incoming $live $Destination
     if (Test-RealDirectory $live) {
-        if (-not (Test-RealDirectory $Incoming)) {
-            throw "Cannot replace existing directory '$($live.FullName)' with a non-directory archive entry."
-        }
         foreach ($child in (Get-ChildItem -LiteralPath $Incoming.FullName -Force)) {
             Assert-MergeLayout $child (Join-Path $Destination $child.Name)
         }
@@ -75,24 +79,76 @@ function Merge-OldBin([string]$OldDir, [string]$NewDir, [string]$LiveDir) {
         $incoming = Get-Entry $destination
         if ($null -eq $incoming) {
             # These paths must be movable, so release their probe handles before moving them.
-            Protect-OldImages $old -ProbeOnly
+            Protect-OldImages $old $livePath -ProbeOnly
             # Moving extra files preserves their identity, including custom hard links.
             Move-ForInstall $old $destination -Required
         }
-        elseif (Test-RealDirectory $old) {
-            if (-not (Test-RealDirectory $incoming)) {
-                throw "Cannot replace existing directory '$livePath' with a non-directory archive entry."
+        else {
+            Assert-MergeEntry $incoming $old $livePath
+            if (Test-RealDirectory $old) {
+                Merge-OldBin $old.FullName $incoming.FullName $livePath
             }
-            Merge-OldBin $old.FullName $incoming.FullName $livePath
         }
     }
 }
 
-function Protect-OldImages($Entry, [switch]$ProbeOnly) {
+function Test-ImageInUse([string]$Path, [string]$LivePath) {
+    if (-not ('MoonBitImageUsage' -as [type])) {
+        # cspell:words ntdll ntstatus
+        Add-Type -TypeDefinition @'
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
+
+[assembly: DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+
+public static class MoonBitImageUsage {
+    [StructLayout(LayoutKind.Sequential)]
+    struct IoStatusBlock {
+        public IntPtr Status;
+        public IntPtr Information;
+    }
+
+    [DllImport("ntdll.dll", ExactSpelling = true)]
+    static extern uint NtQueryInformationFile(SafeFileHandle file, out IoStatusBlock ioStatus,
+        IntPtr information, int length, int informationClass);
+
+    public static bool IsInUse(string path) {
+        const int ProcessIdsUsingFile = 47;
+        const int BufferSize = 4096;
+        using (var file = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+        using (var process = Process.GetCurrentProcess()) {
+            IntPtr buffer = Marshal.AllocHGlobal(BufferSize);
+            try {
+                IoStatusBlock ioStatus;
+                uint status = NtQueryInformationFile(file.SafeFileHandle, out ioStatus, buffer, BufferSize, ProcessIdsUsingFile);
+                // A full buffer already implies that processes besides this one are using the file.
+                if (status == 0x80000005 || status == 0xC0000023 || status == 0xC0000004) return true;
+                if (status != 0) throw new IOException("File usage query failed (NTSTATUS 0x" + status.ToString("X8") + ").");
+
+                int count = Marshal.ReadInt32(buffer);
+                for (int index = 1; index <= count; index++) {
+                    if (Marshal.ReadIntPtr(buffer, index * IntPtr.Size).ToInt64() != process.Id) return true;
+                }
+                return false;
+            }
+            finally { Marshal.FreeHGlobal(buffer); }
+        }
+    }
+}
+'@
+    }
+    try { [MoonBitImageUsage]::IsInUse($Path) }
+    catch { throw "Cannot check whether old MoonBit image '$LivePath' is in use. $($_.Exception.GetBaseException().Message)" }
+}
+
+function Protect-OldImages($Entry, [string]$LivePath, [switch]$ProbeOnly) {
     if ($Entry.Attributes -band [IO.FileAttributes]::ReparsePoint) { return }
     if ($Entry.PSIsContainer) {
         foreach ($child in (Get-ChildItem -LiteralPath $Entry.FullName -Force)) {
-            Protect-OldImages $child -ProbeOnly:$ProbeOnly
+            Protect-OldImages $child (Join-Path $LivePath $child.Name) -ProbeOnly:$ProbeOnly
         }
     }
     elseif ($Entry.Extension -in '.exe', '.dll') {
@@ -102,7 +158,16 @@ function Protect-OldImages($Entry, [switch]$ProbeOnly) {
             $handle = [IO.File]::Open($Entry.FullName, 'Open', 'Write', 'Write')
         }
         catch {
-            throw "Cannot reserve old MoonBit image '$($Entry.Name)'. Close any processes using it and retry. $($_.Exception.Message)"
+            $cause = $_.Exception.GetBaseException()
+            if ($cause -is [UnauthorizedAccessException]) {
+                if (-not $ProbeOnly) {
+                    throw "Access denied while reserving old MoonBit image '$LivePath'. Check its permissions and read-only attribute."
+                }
+                # For a custom tool, check mapped images without requesting write access.
+                if (-not (Test-ImageInUse $Entry.FullName $LivePath)) { return }
+                throw "Cannot reserve old MoonBit image '$LivePath'. Close any processes using it and retry."
+            }
+            throw "Cannot reserve old MoonBit image '$LivePath'. Close any processes using it and retry. $($cause.Message)"
         }
         if ($ProbeOnly) { $handle.Dispose() }
         else { $images.Add($handle) }
@@ -111,10 +176,8 @@ function Protect-OldImages($Entry, [switch]$ProbeOnly) {
 
 function Publish-Entry($Incoming, [string]$Destination, [string]$Previous, [switch]$Replace) {
     $live = Get-Entry $Destination
+    if (-not $Replace) { Assert-MergeEntry $Incoming $live $Destination }
     if (-not $Replace -and (Test-RealDirectory $live)) {
-        if (-not (Test-RealDirectory $Incoming)) {
-            throw "Cannot replace existing directory '$($live.FullName)' with a non-directory archive entry."
-        }
         foreach ($child in (Get-ChildItem -LiteralPath $Incoming.FullName -Force)) {
             Publish-Entry $child (Join-Path $Destination $child.Name) (Join-Path $Previous $child.Name)
         }
@@ -132,6 +195,15 @@ try { $lock = [IO.File]::Open($lockPath, 'OpenOrCreate', 'ReadWrite', 'None') }
 catch [IO.IOException] { throw "Cannot acquire .install.lock at '$lockPath'. $($_.Exception.Message)" }
 
 try {
+    # An interrupted publisher can leave the only copies of user tools in staging.
+    foreach ($entry in (Get-ChildItem -LiteralPath $InstallDir -Force -Filter '.setup-moonbit.*')) {
+        if (-not (Test-RealDirectory $entry)) { continue }
+        $previousBackup = Join-Path $entry.FullName 'backup'
+        if ($null -ne (Get-Entry (Join-Path $previousBackup '.publish-pending'))) {
+            throw "An earlier MoonBit publication is incomplete. Recover the installation from the preserved staging directory '$($entry.FullName)' and backup '$previousBackup' before retrying."
+        }
+    }
+
     $roots = 'bin', 'lib', 'include'
     foreach ($name in $roots) {
         $entry = Get-Entry (Join-Path $InstallDir $name)
@@ -160,7 +232,7 @@ try {
                 try { Move-ForInstall $old $oldBin -Required -OldBin }
                 catch { throw "Cannot move the old MoonBit bin directory. Close any processes using it and retry. $($_.Exception.Message)" }
                 Merge-OldBin $oldBin $newBin $old.FullName
-                Protect-OldImages (Get-Entry $oldBin)
+                Protect-OldImages (Get-Entry $oldBin) $liveBin
             }
 
             foreach ($name in 'lib', 'include') {

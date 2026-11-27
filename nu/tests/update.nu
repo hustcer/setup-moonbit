@@ -1,5 +1,16 @@
 use std/assert
 
+def run-installer [installer: path, ...args: string] {
+  ^nu --no-config-file $installer ...$args | complete
+}
+
+def assert-diagnostic [stderr: string, expected: string] {
+  # At very narrow widths even individual words can span diagnostic continuation lines.
+  let message = $stderr | ansi strip | str replace --all --regex '[\s|│]+' ''
+  let phrase = $expected | str replace --all --regex '\s+' ''
+  assert ($message | str contains $phrase) $stderr
+}
+
 # Run on Unix, where a Nushell script with a shebang can stand in for curl.
 def main [installer: path] {
   let installer = $installer | path expand
@@ -31,10 +42,21 @@ def main [installer: path] {
     'custom tool' | save $custom_tool
     ^ln $custom_tool $custom_link
     'old bundled tool' | save ([$installed bin internal bundled-tool] | path join)
+    let old_bin = [$installed bin] | path join
+    let payload_bin = [$payload bin] | path join
+    for name in [moonc moonrun] {
+      let old_binary = [$old_bin $name] | path join
+      ['#!/bin/sh' 'echo old'] | str join (char nl) | save $old_binary
+      ^chmod +x $old_binary
+      ['#!/bin/sh' 'echo staged'] | str join (char nl) | save ([$payload_bin $name] | path join)
+    }
     [
       '#!/usr/bin/env -S nu --no-config-file'
       'def --wrapped main [...args: string] {'
       '  if $args == ["version" "--all"] {'
+      '    let bin = [$env.MOON_HOME bin] | path join'
+      '    if $env.MOONC_OVERRIDE? != ([$bin moonc] | path join) { exit 3 }'
+      '    if $env.MOONRUN_OVERRIDE? != ([$bin moonrun] | path join) { exit 3 }'
       '    print "test toolchain version"'
       '    return'
       '  }'
@@ -91,10 +113,12 @@ def main [installer: path] {
     ^chmod +x $curl
 
     with-env {
-      PATH: ($env.PATH | prepend $mocks)
+      PATH: ($env.PATH | prepend [$mocks $old_bin])
       MOONBIT_HOME: $installed
       MOONBIT_INSTALL_VERSION: 'latest'
       MOONBIT_INSTALL_DEV: ''
+      MOONC_OVERRIDE: ([$old_bin moonc] | path join)
+      MOONRUN_OVERRIDE: ([$old_bin moonrun] | path join)
       GITHUB_PATH: ([$work_dir github-path] | path join)
       TEST_ARCHIVE: $archive
       TEST_CORE_ARCHIVE: $core_archive
@@ -104,7 +128,7 @@ def main [installer: path] {
     } {
       # 1. Interrupted toolchain or core downloads must leave the live install untouched.
       for download in [toolchain core] {
-        let result = with-env {TEST_DOWNLOAD: $download} { ^nu --no-config-file $installer -cV latest | complete }
+        let result = with-env {TEST_DOWNLOAD: $download} { run-installer $installer '-cV' latest }
         assert not equal $result.exit_code 0
         assert equal (open $observed) ['old moon' 'old core'] $'Install changed during ($download) download'
         assert equal (open --raw $moon) 'old moon'
@@ -115,36 +139,47 @@ def main [installer: path] {
 
       # 2. Failed core bundling must surface stdout diagnostics and leave the live install untouched.
       let bundle_fail = with-env {TEST_DOWNLOAD: 'bundle-fail', TEST_MOON_FAIL_STDOUT: '1'} {
-        ^nu --no-config-file $installer -cV latest | complete
+        run-installer $installer '-cV' latest
       }
       assert not equal $bundle_fail.exit_code 0
-      assert str contains $bundle_fail.stderr 'bundle failed on stdout'
+      assert-diagnostic $bundle_fail.stderr 'bundle failed on stdout'
       assert equal (open --raw $moon) 'old moon'
       assert equal (open --raw $core) 'old core'
       assert equal (ls -a $installed | get name | path basename | sort) [bin include lib]
 
       # Invalid archive layouts must fail before replacing any installed file.
       let missing_lib = with-env {TEST_DOWNLOAD: 'success', TEST_ARCHIVE: $incomplete_archive} {
-        ^nu --no-config-file $installer | complete
+        run-installer $installer
       }
       let missing_core = with-env {TEST_DOWNLOAD: 'bundle-fail', TEST_CORE_ARCHIVE: $incomplete_core} {
-        ^nu --no-config-file $installer -cV latest | complete
+        run-installer $installer '-cV' latest
       }
       assert not equal $missing_lib.exit_code 0
-      assert str contains $missing_lib.stderr 'Expected a directory'
+      assert-diagnostic $missing_lib.stderr 'Expected a directory'
       assert not equal $missing_core.exit_code 0
-      assert str contains $missing_core.stderr 'Expected a core'
+      assert-diagnostic $missing_core.stderr 'Expected a core'
       let invalid_alias = with-env {TEST_DOWNLOAD: 'success', TEST_ARCHIVE: $invalid_alias_archive} {
-        ^nu --no-config-file $installer | complete
+        run-installer $installer
       }
       assert not equal $invalid_alias.exit_code 0
-      assert str contains $invalid_alias.stderr 'moonx symlink'
+      assert-diagnostic $invalid_alias.stderr 'moonx symlink'
       let invalid_moon = with-env {TEST_DOWNLOAD: 'core', TEST_ARCHIVE: $invalid_moon_archive} {
-        ^nu --no-config-file $installer -cV latest | complete
+        run-installer $installer '-cV' latest
       }
       assert not equal $invalid_moon.exit_code 0
-      assert str contains $invalid_moon.stderr 'staged Moon'
+      assert-diagnostic $invalid_moon.stderr 'staged Moon'
       assert not ($observed | path exists) 'Core download should not start when staged Moon is invalid'
+      # Existing tools on PATH or named by override variables must not fill holes in the archive.
+      for name in [moonc moonrun] {
+        let missing_binary_archive = [$work_dir $'missing-($name).tar.gz'] | path join
+        ^tar -czf $missing_binary_archive --exclude $'bin/($name)' -C $payload bin lib include
+        let missing_binary = with-env {TEST_DOWNLOAD: 'core', TEST_ARCHIVE: $missing_binary_archive} {
+          run-installer $installer '-cV' latest
+        }
+        assert not equal $missing_binary.exit_code 0
+        assert-diagnostic $missing_binary.stderr $'named ($name)'
+        assert not ($observed | path exists) 'Core download should not start when an executable is missing'
+      }
       assert equal (open --raw $moon) 'old moon'
       assert equal (open --raw $core) 'old core'
       assert equal (open --raw $stale_include) 'stale include'
@@ -155,28 +190,40 @@ def main [installer: path] {
       let conflict_path = [$conflict_home lib] | path join
       'existing file' | save $conflict_path
       let conflict = with-env {TEST_DOWNLOAD: 'success', MOONBIT_HOME: $conflict_home} {
-        ^nu --no-config-file $installer | complete
+        run-installer $installer
       }
       assert not equal $conflict.exit_code 0
-      assert str contains $conflict.stderr 'Cannot replace'
+      assert-diagnostic $conflict.stderr 'Cannot replace'
       assert equal (open --raw $conflict_path) 'existing file'
       assert equal (ls -a $conflict_home | get name | path basename) [lib]
 
       let bin_conflict = with-env {TEST_DOWNLOAD: 'success', TEST_ARCHIVE: $conflicting_archive} {
-        ^nu --no-config-file $installer | complete
+        run-installer $installer
       }
       assert not equal $bin_conflict.exit_code 0
-      assert str contains $bin_conflict.stderr 'Cannot replace'
+      assert-diagnostic $bin_conflict.stderr 'Cannot replace'
       assert equal (open --raw $custom_tool) 'custom tool'
       assert equal (open --raw $moon) 'old moon'
+
+      let file_conflict_home = [$work_dir file-conflict] | path join
+      let file_conflict_path = [$file_conflict_home bin internal] | path join
+      mkdir ($file_conflict_path | path dirname)
+      'user file' | save $file_conflict_path
+      let file_conflict = with-env {TEST_DOWNLOAD: 'success', MOONBIT_HOME: $file_conflict_home} {
+        run-installer $installer
+      }
+      assert not equal $file_conflict.exit_code 0
+      assert-diagnostic $file_conflict.stderr 'Cannot replace'
+      assert equal (open --raw $file_conflict_path) 'user file'
+      assert equal (ls -a $file_conflict_home | get name | path basename) [bin]
 
       # 3. An existing lock must block concurrent installation without deleting the lock or live files.
       let lock_path = [$installed .setup-moonbit-lock] | path join
       mkdir $lock_path
       try {
-        let locked = with-env {TEST_DOWNLOAD: 'success'} { ^nu --no-config-file $installer | complete }
+        let locked = with-env {TEST_DOWNLOAD: 'success'} { run-installer $installer }
         assert not equal $locked.exit_code 0
-        assert str contains $locked.stderr 'Cannot acquire'
+        assert-diagnostic $locked.stderr 'Cannot acquire'
         assert (($lock_path | path type) == 'dir') 'Existing lock was removed on contention'
         assert equal (open --raw $moon) 'old moon'
         assert equal (open --raw $core) 'old core'
@@ -190,7 +237,7 @@ def main [installer: path] {
         let internal_dir = [$installed bin internal] | path join
         ^chmod 555 $internal_dir
         try {
-          let rollback = with-env {TEST_DOWNLOAD: 'success'} { ^nu --no-config-file $installer | complete }
+          let rollback = with-env {TEST_DOWNLOAD: 'success'} { run-installer $installer }
           assert not equal $rollback.exit_code 0
           assert equal (open --raw $moon) 'old moon'
           assert equal (open --raw $core) 'old core'
@@ -205,7 +252,11 @@ def main [installer: path] {
 
       # 5. A successful update must replace lib/include, link moonx, and preserve custom tools & hard links.
       ^chmod 000 $custom_tool
-      let result = with-env {TEST_DOWNLOAD: 'success'} { ^nu --no-config-file $installer | complete }
+      let result = with-env {
+        TEST_DOWNLOAD: 'success'
+        MOONC_OVERRIDE: ([$work_dir absent-moonc] | path join)
+        MOONRUN_OVERRIDE: ([$work_dir absent-moonrun] | path join)
+      } { run-installer $installer }
       assert equal $result.exit_code 0 $result.stderr
       assert equal ($result.stdout | str trim | lines | last) 'test toolchain version'
       assert str contains (open --raw $moon) 'TEST_MOON_FAIL_STDOUT'
@@ -239,7 +290,7 @@ def main [installer: path] {
         TEST_ARCHIVE: $archive
         TEST_DOWNLOAD: 'success'
       } {
-        ^nu --no-config-file $installer | complete
+        run-installer $installer
       }
     }
     assert equal $fallback_result.exit_code 0 $fallback_result.stderr

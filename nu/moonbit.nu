@@ -56,7 +56,11 @@ def extract-archive [archive: string, destination: string] {
 def require-success [message: string]: record -> nothing {
   let result = $in
   if $result.exit_code != 0 {
-    error make {msg: $message, help: ($result.stderr | str trim)}
+    let details = [$result.stderr $result.stdout] | each { str trim } | where { is-not-empty } | str join (char nl)
+    if ($details | is-empty) {
+      error make {msg: $message}
+    }
+    error make {msg: $message, help: $details}
   }
 }
 
@@ -94,14 +98,14 @@ export def 'setup moonbit' [
   --core-version(-V): string = 'latest',  # The version of moonbit core to setup, `latest` by default
   --patch-runtime(-p),  # Patch runtime.c to fix native build on Windows without Visual Studio
 ] {
-  let version = $version | default $env.MOONBIT_INSTALL_VERSION? | default 'latest'
+  let version = $version | default --empty $env.MOONBIT_INSTALL_VERSION? | default --empty 'latest'
   if ($version not-in $VALID_VERSION_TAG) and not (is-semver $version) {
     print $'(ansi r)Invalid version: ($version)(ansi rst)'; exit 2
   }
   if $setup_core and ($core_version not-in $VALID_VERSION_TAG) and not (is-semver $core_version) {
     print $'(ansi r)Invalid version: ($core_version)(ansi rst)'; exit 2
   }
-  let MOONBIT_HOME = $env.MOONBIT_HOME? | default ([$nu.home-dir .moon] | path join) | path expand
+  let MOONBIT_HOME = $env.MOONBIT_HOME? | default --empty ([$nu.home-dir .moon] | path join) | path expand
   let MOONBIT_BIN_DIR = [$MOONBIT_HOME bin] | path join
   let OS_INFO = $'($nu.os-info.name)_($nu.os-info.arch)'
   let archive = $ARCH_TARGET_MAP | get -o $OS_INFO
@@ -207,15 +211,16 @@ def plan-install [staged: string, install_dir: string, backup: string, replace: 
 }
 
 def install-toolchain [staged: string, backup: string, install_dir: string] {
-  let lock_dir = [$install_dir .setup-moonbit-lock] | path join
+  let lock_path = [$install_dir .setup-moonbit-lock] | path join
   let lock = if (windows?) {
-    with-env {SETUP_MOONBIT_LOCK_DIR: $lock_dir} {
-      ^powershell.exe -NoProfile -NonInteractive -Command 'New-Item -ItemType Directory -Path $env:SETUP_MOONBIT_LOCK_DIR -ErrorAction Stop | Out-Null' | complete
+    with-env {SETUP_MOONBIT_LOCK_PATH: $lock_path} {
+      # Use FileMode::CreateNew for an atomic, literal-path lock without PowerShell wildcard parsing.
+      ^powershell.exe -NoProfile -NonInteractive -Command '$ErrorActionPreference = "Stop"; [IO.File]::Open($env:SETUP_MOONBIT_LOCK_PATH, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None).Dispose()' | complete
     }
   } else {
-    ^mkdir -- $lock_dir | complete
+    ^mkdir -- $lock_path | complete
   }
-  $lock | require-success $'Cannot lock MoonBit installation at ($install_dir)'
+  $lock | require-success $'Cannot acquire installation lock at ($lock_path). Wait for any other install to finish, or remove this lock if a previous run was interrupted.'
   try {
     let entries = plan-install $staged $install_dir $backup [lib include]
     try {
@@ -227,12 +232,17 @@ def install-toolchain [staged: string, backup: string, install_dir: string] {
         if $entry.publish { mv $entry.incoming $entry.installed }
       }
     } catch { |err|
-      let restore_errors = $entries | each { |entry|
+      let restore_errors = $entries | reverse | each { |entry|
         try {
           if $entry.publish and ($entry.incoming | path type) == null and ($entry.installed | path type) != null {
             mv $entry.installed $entry.incoming
           }
-          if ($entry.previous | path type) != null { mv $entry.previous $entry.installed }
+          if ($entry.previous | path type) != null {
+            if ($entry.installed | path type) != null {
+              error make {msg: $'Target path still exists: ($entry.installed)'}
+            }
+            mv $entry.previous $entry.installed
+          }
         } catch { |restore_err|
           $'($entry.installed): ($restore_err.msg)'
         }
@@ -248,7 +258,7 @@ def install-toolchain [staged: string, backup: string, install_dir: string] {
     }
     rm --permanent -rf $backup
   } finally {
-    rm --permanent -rf $lock_dir
+    rm --permanent -rf $lock_path
   }
 }
 

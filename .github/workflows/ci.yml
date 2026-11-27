@@ -37,8 +37,8 @@ jobs:
         run: |
           moon version --all
 
-      - name: Check interrupted downloads preserve the installation
-        if: runner.os == 'Linux'
+      - name: Check staged toolchain updates preserve the installation
+        if: runner.os != 'Windows'
         shell: nu {0}
         run: nu --no-config-file nu/tests/update.nu nu/moonbit.nu
 

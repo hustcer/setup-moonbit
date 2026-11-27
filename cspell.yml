@@ -23,6 +23,7 @@ words:
 - moonrun
 - justfile
 - lefthook
+- lockf
 - linewise
 - deepseek
 - pipefail
@@ -37,5 +38,6 @@ words:
 - nuon
 - println
 - rustls
+- taskkill
 - winapi
 ignorePaths:

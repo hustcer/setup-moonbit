@@ -14,13 +14,12 @@
 #    setup moonbit
 #    setup moonbit 0.1.20240910+3af041b9a
 
+use download.nu fetch-archive
+export use download.nu HTTP_HEADERS
+
 const CLI_HOST = 'https://cli.moonbitlang.com'
 const WINDOWS_PUBLISHER = path self publish-windows.ps1
 const TOOLCHAIN_DIRS = [bin lib include]
-
-# It takes longer to respond to requests made with unknown/rare user agents.
-# When make http post pretend to be curl, it gets a response just as quickly as curl.
-export const HTTP_HEADERS = [User-Agent curl/8.9]
 
 const VALID_VERSION_TAG = [latest, pre-release, nightly]
 const ARCH_TARGET_MAP = {
@@ -34,16 +33,6 @@ const ARCH_TARGET_MAP = {
 
 export-env {
   $env.config.color_config.leading_trailing_space_bg = { attr: n }
-}
-
-# Download an archive into the temporary working directory.
-def fetch-archive [url: string, archive: string] {
-  print $'Fetch (ansi g)($url)(ansi rst)'
-  if (is-installed curl) {
-    ^curl -fL -o $archive $url
-    return
-  }
-  http get --raw -H $HTTP_HEADERS $url | save --progress $archive
 }
 
 def extract-archive [archive: string, destination: string] {
@@ -181,7 +170,8 @@ def prepare-toolchain [
   let extension = if $on_windows { 'zip' } else { 'tar.gz' }
   let archive = $'moonbit-($target).($extension)'
   let encoded_version = $version | str replace + %2B
-  fetch-archive $'($CLI_HOST)/binaries/($encoded_version)/($archive)' $archive
+  let download_cache = [($work_dir | path dirname) .setup-moonbit-downloads] | path join
+  fetch-archive $'($CLI_HOST)/binaries/($encoded_version)/($archive)' $archive $download_cache
   extract-archive $archive $staged
   for name in $TOOLCHAIN_DIRS {
     if ([$staged $name] | path join | path type) != 'dir' {
@@ -224,7 +214,7 @@ def prepare-toolchain [
     print $'(char nl)Setup moonbit core of version: (ansi g)($core_version)(ansi rst)'; hr-line
     let encoded_core_version = $core_version | str replace + %2B
     let core_archive = $'core-($core_version).($extension)'
-    fetch-archive $'($CLI_HOST)/cores/core-($encoded_core_version).($extension)' $core_archive
+    fetch-archive $'($CLI_HOST)/cores/core-($encoded_core_version).($extension)' $core_archive $download_cache
     rm --permanent -rf $core_dir
     extract-archive $core_archive $lib_dir
     if ($core_dir | path type) != 'dir' {

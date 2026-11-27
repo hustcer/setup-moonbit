@@ -1,5 +1,7 @@
 use std/assert
 
+const DOWNLOAD_FIXTURE = path self fixtures/download.nu
+
 def run-installer [installer: path, ...args: string] {
   ^nu --no-config-file $installer ...$args | complete
 }
@@ -12,10 +14,14 @@ def assert-diagnostic [stderr: string, expected: string] {
 }
 
 # Run on Unix, where a Nushell script with a shebang can stand in for curl.
-def main [installer: path] {
-  let installer = $installer | path expand
+def main [source: path] {
+  let source = $source | path expand
   let work_dir = mktemp --directory
   try {
+    let installer = [$work_dir moonbit.nu] | path join
+    cp $source $installer
+    cp $DOWNLOAD_FIXTURE ([$work_dir download.nu] | path join)
+    cp ([($source | path dirname) publish-windows.ps1] | path join) $work_dir
     let installed = [$work_dir installed] | path join
     let payload = [$work_dir payload] | path join
     let core_payload = [$work_dir core-payload] | path join
